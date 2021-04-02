@@ -43,7 +43,7 @@ Output files:
 
 
 
-# QUICKSTART
+# Quickstart
 
 STEP 1
 - git clone repo in the directory containing the raw fastq.gz reads. The resulting directory will contain the following:
