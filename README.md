@@ -2,7 +2,7 @@
 
 
 # Summary
-Cut and Tag pipeline implemented in snakemake.
+Cut and Tag pipeline implemented in Snakemake.
 
 # General Usage and Important considerations
 1) This pipeline should be run in a High Performance Computing (HPC) environment for best results.
@@ -16,7 +16,7 @@ Format:
 Fastq.gz files with the following naming format:
 
 ```
-[SAMPLE-NAME]_[READ].fastq.gz
+{SAMPLE-NAME}_{READ}.fastq.gz
 ```
 
 
@@ -65,7 +65,7 @@ STEP 1
 |-- Scripts
 ```
 
-STEP 3
+STEP 2
 - Activate a conda or any other virtual environment.
 - Install tools and dependencies based on either the provided enviroment.yaml files (with conda) or requirements.txt file (without conda).
 
@@ -83,7 +83,7 @@ source ~/ENV/bin/activate
 pip install --no-index -r 2021_requirements.txt
 ```
 
-STEP 4
+STEP 3
 cookiecutter installation and SLURM profile configuration
  - Install cookiecutter - https://cookiecutter.readthedocs.io/en/1.7.2/installation.html
 
@@ -102,7 +102,7 @@ In the setup prompt, add your <profile name> (e.g. Slurm_CnT). Others can be lef
 
 For more information, refer to this very informative blog post: http://bluegenes.github.io/Using-Snakemake_Profiles/
 
-STEP 5
+STEP 4
 - Go back to the directory containing the FASTQ files for the Cut and Tag library and contents of the repo.
 - open ./config/config.yaml in a text editor and modify the following lines:
 ```
@@ -115,15 +115,15 @@ genome_index: /path/to/genome/index
 SEACRLoc: /path/to/SEACR-master/SEACR_1.3.sh
 ```
 
-STEP 6
+STEP 5
 Fill in Samples.tsv. This file allows the user to organize metadata for the library. The minimum information that MUST be provided is:
-1- Sample name: this should correspond to the name of the file i.e. [SAMPLE-NAME]_[READ].fastq.gz
+1- Sample name: this should correspond to the name of the file i.e. ```{SAMPLE-NAME}_{READ}.fastq.gz```
 
 2- Condition: The two options here are: 'IgG' or 'TargetFile'. This is important because if IgG is specified, it will it use it as a control file when calling peaks.
 
 
-STEP 7
-Once steps 1 to 6 are completed, you are finally ready to run the pipeline. In the directory, call snakemake with --profile <profile.name>. E.g.
+STEP 6
+Once steps 1 to 5 are completed, you are finally ready to run the pipeline. In the directory, call Snakemake with ```--profile <profile.name>```. E.g.
 
 
 ```
@@ -132,7 +132,7 @@ snakemake --profile Slurm_CnT
 
 Troubleshooting Snakemake:
 
-- You can do a 'dry-run' with snakemake. This allows you to see if the workflow is constructed properly.
+- You can do a 'dry-run' with Snakemake. This allows you to see if the workflow is constructed properly.
 ```
 snakemake -np --profile Slurm_CnT
 ```
