@@ -201,7 +201,7 @@ Normalization factors for a set of libraries associated with a particular histon
 is calculated using reads mapped to the Spike-in sequence. Normalization factors for each sample is
 calculated as:
 
-<img src="https://latex.codecogs.com/svg.latex?Normalization Factor =  {\frac{Spike_{min} }  {Spike_{Sample} } }"/>
+<img src="https://latex.codecogs.com/gif.latex?Normalization&space;Factor&space;=&space;{\frac{Spike_{min}&space;}&space;{Spike_{Sample}&space;}&space;}"/>
 
 where:
 Spike_min = No. of reads corresponding to the sample with minimum number of mapped
