@@ -7,18 +7,15 @@ This is an analysis pipeline for CUT&Tag data implemented in Snakemake. Cleavage
 The following pipeline can be used to perform quality-control, alignment as well as Spike-in normalization. The steps are outlined below:
 
 1) MD5 checks of FASTQ reads
-
 2) QC of FASTQ reads
-
 3) Alignment to genome (e.g. mouse, human etc )
-
 4) Alignment to Spike-in genome (e.g. any artificially spiked sequence or carry-over E.coli)
-
 5) Filtering BAMs
-
 6) Spike-in normalization
-
 7) Peak-calling
+
+<img width="1387" alt="Screen Shot 2021-04-08 at 9 02 32 AM" src="https://user-images.githubusercontent.com/20444993/114031286-37bb7a00-9849-11eb-8ddd-397d66b7e3b0.png">
+
 
 
 
