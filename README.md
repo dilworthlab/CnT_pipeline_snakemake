@@ -65,10 +65,9 @@ Output files:
 
 ``` git clone https://github.com/dilworthlab/CnT_pipeline_snakemake.git ```
 
-```
-
 The resulting directory will contain the following:
 
+```
 |-- Snakefile
 |
 |-- config  
