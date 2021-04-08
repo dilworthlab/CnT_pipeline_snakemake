@@ -22,7 +22,7 @@ The following pipeline can be used to perform quality-control, alignment as well
 # General Usage and Important considerations
 1) This pipeline should be run in a High Performance Computing (HPC) environment for best results.
 
-2) The pipeline should be executed separately for each UNIQUE CUT&Tag library. This is because the parameters for Spike-in normalization are dependant on the entire library. Running the pipeline on files from different histone or TF CnT libraries will result in incorrect normalization.
+2) The pipeline should be executed separately for each group of samples using the same antibody. This is because the parameters for Spike-in normalization are dependant on the entire library. Running the pipeline on files from different histone or TF CnT libraries will result in incorrect normalization.
 
 Input files:
 This pipeline starts with raw sequencing FASTQ files, R1 and R2 for each sample.
@@ -61,11 +61,14 @@ Output files:
 # Quickstart
 
 ## STEP 1:  Get repository
-- clone repo in the directory containing the raw fastq.gz reads. The resulting directory will contain the following:
+- clone repo in the directory containing the raw fastq.gz reads.
 
 ``` git clone https://github.com/dilworthlab/CnT_pipeline_snakemake.git ```
 
 ```
+
+The resulting directory will contain the following:
+
 |-- Snakefile
 |
 |-- config  
@@ -103,7 +106,7 @@ source ~/myenv/bin/activate
 
 
 # install required software
-pip install --no-index -r 2021_requirements.txt
+pip install --no-index -r Requirements.txt
 ```
 
 ### Option 2: Using conda Environment
@@ -111,7 +114,7 @@ pip install --no-index -r 2021_requirements.txt
 #  create conda environment
 conda env create -f envs_conda/snakemake_env.yaml
 ```
-# Note: Consider using Tmux when running the pipeline.  
+Note: Consider using Tmux when running the pipeline.  
 
 ## STEP 3: cookiecutter installation and SLURM profile configuration
 
@@ -171,18 +174,18 @@ Fill in Samples.tsv. This file allows the user to organize metadata for the libr
 
 
 ## STEP 6 : Run pipeline with snakemake
-Once steps 1 to 5 are completed, you are finally ready to run the pipeline. In the directory, call Snakemake with ```--profile <profile.name>```. E.g.
+Once steps 1 to 5 are completed, you are finally ready to run the pipeline. In the directory, call Snakemake with ```--profile <profile.name>```.
 
 
 ```
-snakemake --profile Slurm_CnT
+snakemake --profile Slurm_CnT # with example profile name "Slurm_CnT"
 ```
 
 
 
 ### Troubleshooting Snakemake:
 
-- You can do a 'dry-run' with Snakemake. This allows you to see if the workflow before running it.
+- You can do a 'dry-run' with Snakemake. This allows you to check the workflow before running it.
 ```
 snakemake -np --profile Slurm_CnT
 ```
@@ -215,6 +218,6 @@ factor is being calculated.
 
 # References
 
-2- Hatice S. Kaya-Okur, Steven J. Wu, Christine A. Codomo, Erica S. Pledger, Terri D. Bryson, Jorja G. Henikoff, Kami Ahmad, and Steven Henikoff. CUT&Tag for efficient epigenomic profiling of small samples and single cells. Nature Communications, 10, April 2019.
+1- Hatice S. Kaya-Okur, Steven J. Wu, Christine A. Codomo, Erica S. Pledger, Terri D. Bryson, Jorja G. Henikoff, Kami Ahmad, and Steven Henikoff. CUT&Tag for efficient epigenomic profiling of small samples and single cells. Nature Communications, 10, April 2019.
 
-1- Ye Zheng. CUT&Tag Data Processing and Analysis Tutorial.
+2- Ye Zheng. CUT&Tag Data Processing and Analysis Tutorial.
