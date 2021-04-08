@@ -14,7 +14,8 @@ The following pipeline can be used to perform quality-control, alignment as well
 6) Spike-in normalization
 7) Peak-calling
 
-![dag](https://user-images.githubusercontent.com/20444993/114030430-700e8880-9848-11eb-9b19-385541294e6c.png)
+<img width="1387" alt="Screen Shot 2021-04-08 at 9 02 32 AM" src="https://user-images.githubusercontent.com/20444993/114031286-37bb7a00-9849-11eb-8ddd-397d66b7e3b0.png">
+
 
 
 
