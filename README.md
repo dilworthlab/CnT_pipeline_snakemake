@@ -14,6 +14,7 @@ The following pipeline can be used to perform quality-control, alignment as well
 6) Spike-in normalization
 7) Peak-calling
 
+[dag.pdf](https://github.com/dilworthlab/CnT_pipeline_snakemake/files/6278676/dag.pdf)
 
 
 # General Usage and Important considerations
