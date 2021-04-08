@@ -6,13 +6,19 @@ This is an analysis pipeline for CUT&Tag data implemented in Snakemake. Cleavage
 
 The following pipeline can be used to perform quality-control, alignment as well as Spike-in normalization. The steps are outlined below:
 
-1- MD5 checks of FASTQ reads
-2- QC of FASTQ reads
-3- Alignment to genome (e.g. mouse, human etc )
-4- Alignment to Spike-in genome (e.g. any artificially spiked sequence or carry-over E.coli)
-5- Filtering BAMs
-6- Spike-in normalization
-7- Peak-calling
+1) MD5 checks of FASTQ reads
+
+2) QC of FASTQ reads
+
+3) Alignment to genome (e.g. mouse, human etc )
+
+4) Alignment to Spike-in genome (e.g. any artificially spiked sequence or carry-over E.coli)
+
+5) Filtering BAMs
+
+6) Spike-in normalization
+
+7) Peak-calling
 
 
 
@@ -108,7 +114,7 @@ pip install --no-index -r 2021_requirements.txt
 #  create conda environment
 conda env create -f envs_conda/snakemake_env.yaml
 ```
-
+# Note: Consider using Tmux when running the pipeline.  
 
 ## STEP 3: cookiecutter installation and SLURM profile configuration
 
@@ -201,12 +207,13 @@ Normalization factors for a set of libraries associated with a particular histon
 is calculated using reads mapped to the Spike-in sequence. Normalization factors for each sample is
 calculated as:
 
-<img src="https://latex.codecogs.com/svg.latex?Normalization Factor =  {\frac{Spike_{min} }  {Spike_{Sample} } }"/>
+<img src="https://latex.codecogs.com/gif.latex?Normalization&space;Factor&space;=&space;{\frac{Spike_{min}&space;}&space;{Spike_{Sample}&space;}&space;}"/>
 
 where:
-Spike_min = No. of reads corresponding to the sample with minimum number of mapped
+
+1) Spike_min = No. of reads corresponding to the sample with minimum number of mapped
 reads within the set,
-Spike_Sample = No. of total mapped reads corresponding to the sample for which the normalization
+2) Spike_Sample = No. of total mapped reads corresponding to the sample for which the normalization
 factor is being calculated.
 
 # References

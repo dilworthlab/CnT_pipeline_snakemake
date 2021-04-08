@@ -105,7 +105,7 @@ rule check_md5:
 
 
 #Quality Control FastQC
-rule QCrawreads_fastqc:
+rule QCrawreads_Fastqc:
     input:
         f'{ROOT_DIR}/{{fastqfile}}_{{read}}.fastq.gz',
         f'{ROOT_DIR}/hashes'
@@ -133,7 +133,7 @@ rule Compileresults_QC:
 
 
 
-rule AdapterTrim_cutadapt:
+rule AdapterTrim_Cutadapt:
     input:
         f'{ROOT_DIR}/{{fastqfile}}_R1.fastq.gz',
         f'{ROOT_DIR}/{{fastqfile}}_R2.fastq.gz',
@@ -238,7 +238,7 @@ rule Compileresults_map:
 
 
 
-rule filtering_bams:
+rule Filtering_bams_PicardSamtools:
     input:
         sortedbam='All_output/Mapped_reads/{fastqfile}.coordsorted.bam'
     output:
@@ -280,7 +280,7 @@ rule Compileresults_filtering:
         "multiqc ./logs/filtered_bams -o ./Analysis_Results/primary_alignment -n filteringbamsStats.html "
 
 
-rule BamCoverage_GetBigwigs:
+rule GetBigwigs_BamCoverage:
     input:
         NoDupsBam='All_output/Processed_reads/{fastqfile}.MappedPaired.MAPQ10.NoDups.bam',
         MAPQfiltBam='All_output/Processed_reads/{fastqfile}.MappedPaired.MAPQ10.bam'
