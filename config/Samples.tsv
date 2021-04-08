@@ -1,5 +1,5 @@
 samples	condition
-A-Ut-H3K27me3	Target
-IgG-His	IgG
-A-Cn-H3K27me3	Target
-A-Jn-H3K27me3	Target
+sample 1	IgG or Target
+sample 2	IgG or Target
+sample 3	IgG or Target
+sample n	IgG or Target
