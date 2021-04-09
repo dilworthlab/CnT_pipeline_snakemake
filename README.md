@@ -83,8 +83,8 @@ The resulting directory will contain the following:
 |
 |-- Reference_files
 |   |-- Spikein_indices
-|       |-- Amp_pbluescript
-|       |-- EcoliK12_index
+|       |-- Amp_pbluescript      # (https://www.addgene.org/vector-database/1946/)
+|       |-- EcoliK12_index       #(U00096.3 - https://www.ncbi.nlm.nih.gov/nuccore/545778205)
 |   |-- cookiecutter
 |       |-- default_res_config.yaml
 |
@@ -187,6 +187,8 @@ genome_index: ./Reference_files/Mus_musculus/UCSC/mm10/Sequence/Bowtie2Index/gen
 ## any other index
 genome_index: ./Reference_files/path/to/genome/index
 
+# Change "effective genome size" - default is for mouse
+bamCov_RPGC: 
 
 # Spike-in index location
 
