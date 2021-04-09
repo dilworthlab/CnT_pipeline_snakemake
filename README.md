@@ -162,7 +162,8 @@ CLUSTER_CONFIG = <HERE> # under "cookiecutter arguments"
 For more information, refer to this very informative blog post: http://bluegenes.github.io/Using-Snakemake_Profiles/
 
 
-## STEP 4: Download Bowtie2 index from iGenomes https://support.illumina.com/sequencing/sequencing_software/igenome.html
+## STEP 4: Download Bowtie2 index from iGenomes
+https://support.illumina.com/sequencing/sequencing_software/igenome.html
 ```
 # change directory to Reference_files
 cd Reference_files
