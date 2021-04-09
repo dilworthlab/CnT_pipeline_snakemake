@@ -79,12 +79,17 @@ The resulting directory will contain the following:
 |
 |-- envs_wo_conda
 |   |-- Requirements.txt
+|   |-- modules_step2_option1.txt
 |
 |-- Reference_files
+|   |-- Spikein_indices
+|       |-- Amp_pbluescript
+|       |-- EcoliK12_index
 |   |-- cookiecutter
 |       |-- default_res_config.yaml
 |
 |-- Scripts
+
 ```
 
 ## STEP 2: Virtual Environments
@@ -94,10 +99,16 @@ The resulting directory will contain the following:
 Note: ComputeCanada requests not using conda environments (See: https://docs.computecanada.ca/wiki/Anaconda/en), in which case, the following steps can be followed:
 
 ### Option 1: HPC virtual environemnt (without conda)
+
 ```
+# install SEACR and Picard tools
+
 # load all relevant modules
 module load python/3.8.2
 module load #other-modules
+
+## Refer to ./envs_wo_conda/modules_step2_option1 for above
+
 
 # make and activate virtual environment (e.g. myenv)
 virtualenv --no-download ~/myenv
@@ -151,20 +162,52 @@ CLUSTER_CONFIG = <HERE> # under "cookiecutter arguments"
 For more information, refer to this very informative blog post: http://bluegenes.github.io/Using-Snakemake_Profiles/
 
 
-## STEP 4: Configure workflow using config.yaml
+## STEP 4: Download Bowtie2 index from iGenomes https://support.illumina.com/sequencing/sequencing_software/igenome.html
+```
+# change directory to Reference_files
+cd Reference_files
+
+# E.g. for Mus musculus (UCSC mm10) genome:
+wget http://igenomes.illumina.com.s3-website-us-east-1.amazonaws.com/Mus_musculus/UCSC/mm10/Mus_musculus_UCSC_mm10.tar.gz
+
+tar -xvf Mus_musculus_UCSC_mm10.tar.gz
+
+```
+
+## STEP 5: Configure workflow using config.yaml
 - Go back to the directory containing the FASTQ files for the Cut and Tag library and contents of the repo.
 - open ./config/config.yaml in a text editor and modify the following lines:
 ```
-PicardLoc: /path/to/Picard/jarfile
+# Primary genome index location -
 
-Spikein_index: /path/to/Spikein/index
+## e.g. Mus musculus (UCSC mm10)
+genome_index: ./Reference_files/Mus_musculus/UCSC/mm10/Sequence/Bowtie2Index/genome
 
-genome_index: /path/to/genome/index
+## any other index
+genome_index: ./Reference_files/path/to/genome/index
 
-SEACRLoc: /path/to/SEACR-master/SEACR_1.3.sh
+
+# Spike-in index location
+
+### Default - sequence for Ampr
+Spikein_index: ./Reference_files/Spikein_indices/Amp_pbluescript/Amp_index/Amp_pBlue
+
+### E coli K12
+Spikein_index: ./Reference_files/Spikein_indices/EcoliK12_index/EcoliK12Index/EcoliK12
+
+### Any other index
+Spikein_index: /path/to/Spikein_index/{index_prefix}
+
+
+
+# Picard location/Command
+PicardLoc: "java -jar /path/to/picard.jar" # don't forget quotes
+
+# SEACR location
+SEACRLoc: /path/to/SEACR-master/SEACR_1.3.sh  # No quotes
 ```
 
-## STEP 5: Sample set-up
+## STEP 6: Sample set-up
 Fill in Samples.tsv. This file allows the user to organize metadata for the library. The minimum information that MUST be provided is:
 
 1- Sample name: this should correspond to the name of the file i.e. ```{SAMPLE-NAME}_{READ}.fastq.gz```
@@ -172,8 +215,8 @@ Fill in Samples.tsv. This file allows the user to organize metadata for the libr
 2- Condition: The two options here are: 'IgG' or 'TargetFile'. This is important because if IgG is specified, it will it use it as a control file when calling peaks.
 
 
-## STEP 6 : Run pipeline with snakemake
-Once steps 1 to 5 are completed, you are finally ready to run the pipeline. In the directory, call Snakemake with ```--profile <profile.name>```.
+## STEP 7 : Run pipeline with snakemake
+Once steps 1 to 6 are completed, you are finally ready to run the pipeline. In the directory, call Snakemake with ```--profile <profile.name>```.
 
 
 ```

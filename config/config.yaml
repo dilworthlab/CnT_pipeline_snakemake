@@ -1,14 +1,14 @@
 --- 
-PicardLoc: "java -jar /home/hbanduk/picard.jar"
+PicardLoc: 
 RawReads_dir: RawReads/
 Spike_align: "-p 8 --end-to-end --very-sensitive --no-overlap --no-dovetail --no-mixed --no-discordant --phred33 -I 10 -X 700"
-Spikein_index: /home/hbanduk/projects/def-jdilwort/hbanduk/CutandTag_indices/Amp_pbluescript/Amp_index/Amp_pBlue
+Spikein_index: ./Reference_files/Spikein_indices/Amp_pbluescript/Amp_index/Amp_pBlue
 bamCov_default: "--binSize 10 --ignoreForNormalization 'chrM' --extendReads"
 bamCov_min: "--binSize 10 --extendReads"
 bamCov_RPGC: "--binSize 10 --normalizeUsing 'RPGC' --effectiveGenomeSize 2308125349 --ignoreForNormalization 'chrM' --extendReads"
 genome_align: "-p 8 --local --very-sensitive-local --no-unal --no-mixed --no-discordant --phred33 -I 10 -X 700"
-genome_index: /home/hbanduk/projects/def-jdilwort/hbanduk/CutandTag_indices/iGenomes_mm_files/Mus_musculus/UCSC/mm10/Sequence/Bowtie2Index/genome
+genome_index: 
 sample_info: ./config/Samples.tsv
 samtools_mapq: "-q 10"
 samtools_proper_paired: "-f 2"
-SEACRLoc: /home/hbanduk/SEACR-master/SEACR_1.3.sh
+SEACRLoc: 
