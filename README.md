@@ -61,9 +61,11 @@ Output files:
 # Quickstart
 
 ## STEP 1:  Get repository
-- clone repo in the directory containing the raw fastq.gz reads.
+- clone repo
 
 ``` git clone https://github.com/dilworthlab/CnT_pipeline_snakemake.git ```
+
+- move raw FASTQ files into the directory
 
 The resulting directory will contain the following:
 
@@ -89,8 +91,12 @@ The resulting directory will contain the following:
 |       |-- default_res_config.yaml
 |
 |-- Scripts
+|
+|-- ** YOUR FASTQ READS **
 
 ```
+
+
 
 ## STEP 2: Virtual Environments
 - Activate a conda or any other virtual environment.
@@ -188,7 +194,7 @@ genome_index: ./Reference_files/Mus_musculus/UCSC/mm10/Sequence/Bowtie2Index/gen
 genome_index: ./Reference_files/path/to/genome/index
 
 # Change "effective genome size" - default is for mouse
-bamCov_RPGC: 
+bamCov_RPGC:
 
 # Spike-in index location
 
