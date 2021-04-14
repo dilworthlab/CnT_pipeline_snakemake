@@ -142,7 +142,7 @@ For more information, refer to this very informative blog post: http://bluegenes
 
 
 
-# Snakefile Configuration
+# STEP 3: Snakefile Configuration
 
 ##  Download Bowtie2 index from iGenomes
 https://support.illumina.com/sequencing/sequencing_software/igenome.html
@@ -196,10 +196,9 @@ SEACRLoc: /path/to/SEACR-master/SEACR_1.3.sh  # No quotes
 
 
 
-# Run Pipeline
+# STEP 4: Run Pipeline with snakemake
 
-## STEP 7 : Run pipeline with snakemake
-Once steps 1 to 6 are completed, you are finally ready to run the pipeline. In the directory, call Snakemake with ```--profile <profile.name>```.
+In the directory, call Snakemake with ```--profile <profile.name>```.
 
 
 ```
