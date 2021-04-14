@@ -1,6 +1,5 @@
 --- 
 PicardLoc: 
-RawReads_dir: RawReads/
 Spike_align: "-p 8 --end-to-end --very-sensitive --no-overlap --no-dovetail --no-mixed --no-discordant --phred33 -I 10 -X 700"
 Spikein_index: ./Reference_files/Spikein_indices/Amp_pbluescript/Amp_index/Amp_pBlue
 bamCov_default: "--binSize 10 --ignoreForNormalization 'chrM' --extendReads"

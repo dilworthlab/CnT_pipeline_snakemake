@@ -2,6 +2,8 @@ import pandas as pd
 import numpy as np
 import glob
 import os
+import yaml
+from pathlib import Path
 
 
 from snakemake.io import expand, glob_wildcards
@@ -17,6 +19,44 @@ configfile:"./config/config.yaml"
 
 # Tabular configuration
 samples = pd.read_csv(config["sample_info"], "\t").set_index("samples")
+
+
+# Multiqc configuration
+home = str(Path.home())
+datadict = {'log_filesize_limit': 2000000000}
+
+files = glob.glob(os.path.join(home, ".*.yaml"))
+if os.path.join(home, ".multiqc_config.yaml") in files:
+    print('~/.multiqc_config.yaml is present')
+    with open(os.path.join(home, ".multiqc_config.yaml"), 'r') as file:
+        values = yaml.safe_load(file)
+
+        if 'log_filesize_limit' in str(values):
+            print('log_filesize_limit is already set')
+        if values is None:
+            with open(os.path.join(home, ".multiqc_config.yaml"), 'w') as file:
+                docs = yaml.dump(datadict, file)
+                print('added log_filesize_limit to multiqc log file')
+        else:
+            with open(os.path.join(home, ".multiqc_config.yaml"), 'r') as file:
+                new_yaml = yaml.safe_load(file)
+                print(type(new_yaml))
+                new_yaml.update(datadict)
+
+
+            with open(os.path.join(home, ".multiqc_config.yaml"),'w') as file:
+                yaml.safe_dump(new_yaml, file)
+                print('log_filesize_limit: 2000000000 is set')
+
+else:
+    with open(os.path.join(home, ".multiqc_config.yaml"), 'w') as file:
+        documents = yaml.dump(datadict, file)
+        print('made new .multiqc_config.yaml')
+
+
+
+
+
 
 
 # Getting directory containing rawreads
@@ -114,8 +154,6 @@ rule QCrawreads_Fastqc:
         ('Analysis_Results/QC_Rawreads/{fastqfile}_{read}_fastqc.zip')
     log:
         'logs/fastqc_rawreads/{fastqfile}_{read}.log'
-    conda:
-        'envs_conda/fastqc.yaml'
     shell:
         """
         fastqc {input[0]} --outdir=./Analysis_Results/QC_Rawreads &>> {log}
@@ -125,10 +163,10 @@ rule Compileresults_QC:
     input: expand('Analysis_Results/QC_Rawreads/{fastqfile}_{read}_fastqc.html', read=READS, fastqfile=FASTQFILES)
     output:
      html="Analysis_Results/QC_Rawreads/Rawreads_QC.html"
-    conda:
-        'envs_conda/compile_results.yaml'
+    log:
+        'logs/compileresults/QC.log'
     shell:
-        "multiqc ./Analysis_Results/QC_Rawreads -o ./Analysis_Results/QC_Rawreads -n Rawreads_QC.html "
+        "multiqc ./Analysis_Results/QC_Rawreads --force -v -o ./Analysis_Results/QC_Rawreads -n Rawreads_QC.html &>> {log} "
 
 
 
@@ -146,8 +184,6 @@ rule AdapterTrim_Cutadapt:
         Trim_read2='All_output/Trimmed_reads/{fastqfile}_Trimmed_R2.fastq'
     log:
         'logs/cutadapt/{fastqfile}.log'
-    conda:
-        'envs_conda/cutadapt.yaml'
     shell:
         'cutadapt -a CTGTCTCTTATACACATCT -A CTGTCTCTTATACACATCT  -o {output.Trim_read1} -p {output.Trim_read2} {input[0]} {input[1]} &>> {log}'
 
@@ -156,10 +192,10 @@ rule Compileresults_PosttrimQC:
     input: expand('logs/cutadapt/{fastqfile}.log', fastqfile=FASTQFILES)
     output:
         html="Analysis_Results/Trimming/PostTrimming_QC.html"
-    conda:
-        'envs_conda/compile_results.yaml'
+    log:
+        'logs/compileresults/PosttrimQC.log'
     shell:
-        "multiqc ./logs/cutadapt -o ./Analysis_Results/Trimming -n PostTrimming_QC.html "
+        "multiqc ./logs/cutadapt --force -v -o ./Analysis_Results/Trimming -n PostTrimming_QC.html &>> {log} "
 
 
 rule Map_Bowtie2:
@@ -177,8 +213,6 @@ rule Map_Bowtie2:
     log:
         bowtie2="logs/primary_alignment/bowtie2/{fastqfile}.log",
         picard="logs/primary_alignment/picard_sort/{fastqfile}.log"
-    conda:
-        'envs_conda/bowtie2.yaml'
     threads: 9
     resources:
         mem_mb=8000,
@@ -206,9 +240,9 @@ rule Collect_alignment_stats:
     log:
         dupstats='logs/primary_alignment/PostAlignmentStats/dupstats/{fastqfile}.log',
         flagstat='logs/primary_alignment/PostAlignmentStats/flagstat/{fastqfile}.log'
-    threads: 4
+    threads: 6
     resources:
-        mem_mb=2000,
+        mem_mb=4000,
         runtime=1440
     shell:
         """
@@ -229,12 +263,14 @@ rule Compileresults_map:
         'logs/primary_alignment/PostAlignmentStats/dupstats/{fastqfile}_picard.dupMark.txt'], fastqfile=FASTQFILES)
     output:
         html="Analysis_Results/primary_alignment/Alignment_results.html"
+    log:
+        'logs/compileresults/map.log'
     threads: 4
     resources:
         mem_mb=2000,
         runtime=1440
     shell:
-        "multiqc ./logs/primary_alignment -o ./Analysis_Results/primary_alignment -n Alignment_results.html  "
+        "multiqc ./logs/primary_alignment --force -v -o ./Analysis_Results/primary_alignment -n Alignment_results.html &>> {log} "
 
 
 
@@ -245,16 +281,18 @@ rule Filtering_bams_PicardSamtools:
         MappedPairedBam='All_output/Processed_reads/{fastqfile}.MappedPaired.bam',
         MAPQfiltBam='All_output/Processed_reads/{fastqfile}.MappedPaired.MAPQ10.bam',
         NoDupsBam='All_output/Processed_reads/{fastqfile}.MappedPaired.MAPQ10.NoDups.bam',
-        rmDups='logs/filtered_bams/{fastqfile}_picard.rmDup.txt'
+        rmDups='logs/filtered_bams/{fastqfile}_picard.rmDup.txt',
+        nodupsBamindex='All_output/Processed_reads/{fastqfile}.MappedPaired.MAPQ10.NoDups.bam.bai',
+        MAPQfiltBamindex='All_output/Processed_reads/{fastqfile}.MappedPaired.MAPQ10.bam.bai'
     log:
         'logs/filtered_bams/{fastqfile}.log'
     params:
         Prop_paired=config['samtools_proper_paired'],
         Mapq10=config['samtools_mapq'],
         picardloc=config['PicardLoc']
-    threads: 4
+    threads: 8
     resources:
-        mem_mb=2000,
+        mem_mb=4000,
         runtime=1440
     shell:
         """
@@ -269,6 +307,10 @@ rule Filtering_bams_PicardSamtools:
 
         samtools flagstat {output.NoDupsBam} &>> {log}
 
+        samtools index {output.NoDupsBam}
+
+        samtools index {output.MAPQfiltBam}
+
         """
 
 rule Compileresults_filtering:
@@ -276,17 +318,19 @@ rule Compileresults_filtering:
         expand('logs/filtered_bams/{fastqfile}.log', fastqfile=FASTQFILES)
     output:
         html="Analysis_Results/primary_alignment/filteringbamsStats.html"
+    log:
+        'logs/compileresults/filtering.log'
     shell:
-        "multiqc ./logs/filtered_bams -o ./Analysis_Results/primary_alignment -n filteringbamsStats.html "
+        "multiqc ./logs/filtered_bams --force -v -o ./Analysis_Results/primary_alignment -n filteringbamsStats.html &>> {log} "
 
 
 rule GetBigwigs_BamCoverage:
     input:
         NoDupsBam='All_output/Processed_reads/{fastqfile}.MappedPaired.MAPQ10.NoDups.bam',
-        MAPQfiltBam='All_output/Processed_reads/{fastqfile}.MappedPaired.MAPQ10.bam'
-    output:
+        MAPQfiltBam='All_output/Processed_reads/{fastqfile}.MappedPaired.MAPQ10.bam',
         nodupsBamindex='All_output/Processed_reads/{fastqfile}.MappedPaired.MAPQ10.NoDups.bam.bai',
-        MAPQfiltBamindex='All_output/Processed_reads/{fastqfile}.MappedPaired.MAPQ10.bam.bai',
+        MAPQfiltBamindex='All_output/Processed_reads/{fastqfile}.MappedPaired.MAPQ10.bam.bai'
+    output:
         bigwig_RPGC='Analysis_Results/RPGC_and_Unnormalized_bws/{fastqfile}_RPGC.bw',
         bigwig_WOnorm='Analysis_Results/RPGC_and_Unnormalized_bws/{fastqfile}_wo.norm.bw',
         bigwig_WOnorm_wDups='Analysis_Results/RPGC_and_Unnormalized_bws/{fastqfile}_wo.norm_wDups.bw',
@@ -303,9 +347,6 @@ rule GetBigwigs_BamCoverage:
         runtime=1440
     shell:
         """
-        samtools index {input.NoDupsBam}
-
-        samtools index {input.MAPQfiltBam}
 
         # RPGC
         bamCoverage --bam {input.NoDupsBam} -o {output.bigwig_RPGC} {params.bamCov_RPGC} 2> {log}
@@ -382,8 +423,10 @@ rule Compileresults_Spike:
     input: expand('logs/Spike_Alignment/flagstat/{fastqfile}.log', fastqfile=FASTQFILES)
     output:
         html="Analysis_Results/Spikein_alignment/Spike_alignment.html"
+    log:
+        'logs/compileresults/Spikealign.log'
     shell:
-        "multiqc ./logs/Spike_Alignment -o ./Analysis_Results/Spikein_alignment -n Spike_alignment.html "
+        "multiqc ./logs/Spike_Alignment --force -v -o ./Analysis_Results/Spikein_alignment -n Spike_alignment.html &>> {log} "
 
 
 rule CalcNormFactors:
@@ -391,6 +434,8 @@ rule CalcNormFactors:
         html="Analysis_Results/Spikein_alignment/Spike_alignment.html"
     output:
         SpikeAlignStats="Analysis_Results/Spikein_normalized_bws_bdgs/Spike_align_stats.csv"
+    log:
+        'logs/compileresults/Scalefacs.log'
     script:
         'Scripts/GetScalingFactors.py'
 
