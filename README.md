@@ -132,7 +132,7 @@ vim config.yaml
 mv  /path/to/repo/Reference_files/cookiecutter/default_res_config.yaml  ~/.config/snakemake_CnT/Slurm_CnT
 
 # edit slurm-submit.py
-add "/path/to/repo/Reference_files/cookiecutter/default_res_config.yaml" to:
+add "/path/to/default_res_config.yaml" to:
 CLUSTER_CONFIG = <HERE> # under "cookiecutter arguments"
 ```
 
