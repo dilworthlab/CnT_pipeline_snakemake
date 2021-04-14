@@ -55,11 +55,16 @@ Output files:
 |-- logs  # Logs of all jobs that were run
 ```
 
+Metadate file:
+Fill in Samples.tsv. This file allows the user to organize metadata for the library. The minimum information that MUST be provided is:
+
+1- Sample name: this should correspond to the name of the file i.e. ```{SAMPLE-NAME}_{READ}.fastq.gz```
+
+2- Condition: The two options here are: 'IgG' or 'TargetFile'. This is important because if IgG is specified, it will it use it as a control file when calling peaks.
 
 
-# Quickstart
 
-## STEP 1:  Get repository
+# STEP 1: Get repository
 - clone repo
 
 ``` git clone https://github.com/dilworthlab/CnT_pipeline_snakemake.git ```
@@ -97,9 +102,8 @@ The resulting directory will contain the following:
 
 
 
-# Installation
 
-## STEP 3: cookiecutter installation and SLURM profile configuration
+# STEP 2: cookiecutter installation and SLURM profile configuration
 
  - Install cookiecutter - https://cookiecutter.readthedocs.io/en/1.7.2/installation.html
 
@@ -136,7 +140,9 @@ For more information, refer to this very informative blog post: http://bluegenes
 
 
 
-# Configuration
+
+
+# Snakefile Configuration
 
 ##  Download Bowtie2 index from iGenomes
 https://support.illumina.com/sequencing/sequencing_software/igenome.html
@@ -186,12 +192,8 @@ PicardLoc: "java -jar /path/to/picard.jar" # don't forget quotes
 SEACRLoc: /path/to/SEACR-master/SEACR_1.3.sh  # No quotes
 ```
 
-## STEP 6: Sample set-up
-Fill in Samples.tsv. This file allows the user to organize metadata for the library. The minimum information that MUST be provided is:
 
-1- Sample name: this should correspond to the name of the file i.e. ```{SAMPLE-NAME}_{READ}.fastq.gz```
 
-2- Condition: The two options here are: 'IgG' or 'TargetFile'. This is important because if IgG is specified, it will it use it as a control file when calling peaks.
 
 
 # Run Pipeline

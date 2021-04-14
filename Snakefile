@@ -265,9 +265,9 @@ rule Compileresults_map:
         html="Analysis_Results/primary_alignment/Alignment_results.html"
     log:
         'logs/compileresults/map.log'
-    threads: 4
+    threads: 6
     resources:
-        mem_mb=2000,
+        mem_mb=4000,
         runtime=1440
     shell:
         "multiqc ./logs/primary_alignment --force -v -o ./Analysis_Results/primary_alignment -n Alignment_results.html &>> {log} "
@@ -454,7 +454,7 @@ rule GetNormBwsBdgs_BamCoverage:
         bamCov_default=config['bamCov_default']
     log:
         "logs/Spikein_normalized_bws_bdgs/{fastqfile}.log"
-    threads: 4
+    threads: 6
     resources:
         mem_mb=2000,
         runtime=1440
