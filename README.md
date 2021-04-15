@@ -21,55 +21,33 @@ The following pipeline can be used to perform quality-control, alignment as well
 
 # General Usage and Important considerations
 
-1) The pipeline should be executed separately for each group of samples using the same antibody. This is because the parameters for Spike-in normalization are dependant on the entire library. Running the pipeline on files from different histone or TF CnT libraries will result in incorrect normalization.
+1) Execute pipeline separately for each group of samples using the same antibody.
 
-Input files:
-This pipeline starts with raw sequencing FASTQ files, R1 and R2 for each sample.
+This is because the parameters for Spike-in normalization are dependant on the entire library. Running the pipeline on files from different histone or TF CnT libraries will result in incorrect normalization.
 
-Format:
-Fastq.gz files with the following naming format:
+2) Input Files
+This pipeline starts with raw sequencing FASTQ files, R1 and R2 for each samples. The format MUST follow the naming format below:
 
 ```
 {SAMPLE-NAME}_{READ}.fastq.gz
 ```
 
+3) Metadata Sheet: Samples.tsv
 
-Output files:
+The Samples.tsv file allows the user to organize metadata for the library. The minimum information that MUST be provided is:
 
-```
-|--Analysis_Results   # Main results directory
-|  |-- QC_Rawreads
-|  |-- Trimming
-|  |-- primary_alignment
-|  |-- RPGC_and_Unnormalized_bws
-|  |-- Spikein_alignment
-|  |-- Spikein_normalized_bws_bdgs
-|  |-- Peaks
-|
-|-- All_output    # All other output
-|  |-- Mapped_reads
-|  |-- Processed_reads
-|  |-- Spike_mapped_reads
-|  |-- Trimmed_reads
-|
-|-- logs  # Logs of all jobs that were run
-```
+- Sample name: this should correspond to the name of the file i.e. ```{SAMPLE-NAME}_{READ}.fastq.gz```
 
-Metadate file:
-Fill in Samples.tsv. This file allows the user to organize metadata for the library. The minimum information that MUST be provided is:
-
-1- Sample name: this should correspond to the name of the file i.e. ```{SAMPLE-NAME}_{READ}.fastq.gz```
-
-2- Condition: The two options here are: 'IgG' or 'TargetFile'. This is important because if IgG is specified, it will it use it as a control file when calling peaks.
+- Condition: The two options here are: 'IgG' or 'TargetFile'. This is important because if IgG is specified, it will it use it as a control file when calling peaks.
 
 
 
 # STEP 1: Get repository
-- clone repo
+1) Clone repo
 
 ``` git clone https://github.com/dilworthlab/CnT_pipeline_snakemake.git ```
 
-- move raw FASTQ files into the directory
+2) Move raw FASTQ files into the directory
 
 The resulting directory will contain the following:
 
@@ -224,6 +202,29 @@ For more information, refer to the very well documented Snakemake docs - https:/
 
 
 # Extra Notes
+
+
+## Output files
+
+
+```
+|--Analysis_Results   # Main results directory
+|  |-- QC_Rawreads
+|  |-- Trimming
+|  |-- primary_alignment
+|  |-- RPGC_and_Unnormalized_bws
+|  |-- Spikein_alignment
+|  |-- Spikein_normalized_bws_bdgs
+|  |-- Peaks
+|
+|-- All_output    # All other output
+|  |-- Mapped_reads
+|  |-- Processed_reads
+|  |-- Spike_mapped_reads
+|  |-- Trimmed_reads
+|
+|-- logs  # Logs of all jobs that were run
+```
 
 ## Spike-in normalization
 
