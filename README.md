@@ -26,7 +26,7 @@ The following pipeline can be used to perform quality-control, alignment as well
 This is because the parameters for Spike-in normalization are dependant on the entire library. Running the pipeline on files from different histone or TF CnT libraries will result in incorrect normalization.
 
 **2) Input Files**
-This pipeline starts with raw sequencing FASTQ files, R1 and R2 for each samples. The format MUST follow the naming format below:
+This pipeline starts with raw sequencing FASTQ files, R1 and R2 for each samples. The format **MUST** follow the naming format below:
 
 ```
 {SAMPLE-NAME}_{READ}.fastq.gz
@@ -34,11 +34,11 @@ This pipeline starts with raw sequencing FASTQ files, R1 and R2 for each samples
 
 **3) Metadata Sheet: Samples.tsv**
 
-The Samples.tsv file allows the user to organize metadata for the library. The minimum information that MUST be provided is:
+The Samples.tsv file allows the user to organize metadata for the library. The minimum information that **MUST** be provided is:
 
-- Sample name: this should correspond to the name of the file i.e. ```{SAMPLE-NAME}_{READ}.fastq.gz```
+- **Sample name**: this should correspond to the name of the file i.e. ```{SAMPLE-NAME}_{READ}.fastq.gz```
 
-- Condition: The two options here are: 'IgG' or 'TargetFile'. This is important because if IgG is specified, it will it use it as a control file when calling peaks.
+- **Condition**: The two options here are: 'IgG' or 'TargetFile'. This is important because if IgG is specified, it will it use it as a control file when calling peaks.
 
 
 
@@ -81,7 +81,7 @@ The resulting directory will contain the following:
 
 
 
-# STEP 2: cookiecutter installation and SLURM profile configuration
+# STEP 2: Cookiecutter installation and SLURM profile configuration
 
  **1) Install cookiecutter - https://cookiecutter.readthedocs.io/en/1.7.2/installation.html**
 
@@ -98,7 +98,7 @@ cookiecutter https://github.com/Snakemake-Profiles/slurm.git
 # In the setup prompt, add your <profile name> (e.g. Slurm_CnT). Others can be left empty.
 ```
 
-**3) add cluster details**
+**3) Add cluster details**
 ```
 # change dir
 cd ~/.config/snakemake_CnT/Slurm_CnT (# profile name)
@@ -174,9 +174,9 @@ SEACRLoc: /path/to/SEACR-master/SEACR_1.3.sh  # No quotes
 
 
 
-# STEP 4: Run Pipeline with snakemake
+# STEP 4: Run Pipeline with Snakemake
 
-In the directory, call Snakemake with ```--profile <profile.name>```.
+In the directory, call Snakemake with ```--profile <profile.name>```:
 
 
 ```
@@ -185,7 +185,7 @@ snakemake --profile Slurm_CnT # with example profile name "Slurm_CnT"
 
 
 
-### Troubleshooting Snakemake:
+#### Troubleshooting Snakemake:
 
 - You can do a 'dry-run' with Snakemake. This allows you to check the workflow before running it.
 ```
