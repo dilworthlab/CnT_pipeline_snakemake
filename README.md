@@ -21,18 +21,18 @@ The following pipeline can be used to perform quality-control, alignment as well
 
 # General Usage and Important considerations
 
-1) Execute pipeline separately for each group of samples using the same antibody.
+**1) Execute pipeline separately for each group of samples using the same antibody.**
 
 This is because the parameters for Spike-in normalization are dependant on the entire library. Running the pipeline on files from different histone or TF CnT libraries will result in incorrect normalization.
 
-2) Input Files
+**2) Input Files**
 This pipeline starts with raw sequencing FASTQ files, R1 and R2 for each samples. The format MUST follow the naming format below:
 
 ```
 {SAMPLE-NAME}_{READ}.fastq.gz
 ```
 
-3) Metadata Sheet: Samples.tsv
+**3) Metadata Sheet: Samples.tsv**
 
 The Samples.tsv file allows the user to organize metadata for the library. The minimum information that MUST be provided is:
 
@@ -43,11 +43,11 @@ The Samples.tsv file allows the user to organize metadata for the library. The m
 
 
 # STEP 1: Get repository
-1) Clone repo
+**1) Clone repo**
 
 ``` git clone https://github.com/dilworthlab/CnT_pipeline_snakemake.git ```
 
-2) Move raw FASTQ files into the directory
+**2) Move raw FASTQ files into the directory**
 
 The resulting directory will contain the following:
 
@@ -83,12 +83,12 @@ The resulting directory will contain the following:
 
 # STEP 2: cookiecutter installation and SLURM profile configuration
 
- - Install cookiecutter - https://cookiecutter.readthedocs.io/en/1.7.2/installation.html
+ **1) Install cookiecutter - https://cookiecutter.readthedocs.io/en/1.7.2/installation.html**
 
 ```
  pip install cookiecutter
 ```
- - Get SLURM profile - https://github.com/Snakemake-Profiles/slurm
+ **2) Get SLURM profile - https://github.com/Snakemake-Profiles/slurm**
 
 ```
 mkdir ~/.config/snakemake_CnT
@@ -98,7 +98,7 @@ cookiecutter https://github.com/Snakemake-Profiles/slurm.git
 # In the setup prompt, add your <profile name> (e.g. Slurm_CnT). Others can be left empty.
 ```
 
-- add cluster details
+**3) add cluster details**
 ```
 # change dir
 cd ~/.config/snakemake_CnT/Slurm_CnT (# profile name)
@@ -122,7 +122,7 @@ For more information, refer to this very informative blog post: http://bluegenes
 
 # STEP 3: Snakefile Configuration
 
-##  Download Bowtie2 index from iGenomes
+**1) Download Bowtie2 index from iGenomes**
 https://support.illumina.com/sequencing/sequencing_software/igenome.html
 ```
 # change directory to Reference_files
@@ -135,7 +135,7 @@ tar -xvf Mus_musculus_UCSC_mm10.tar.gz
 
 ```
 
-##  Configure workflow using config.yaml
+**2) Configure workflow using config.yaml**
 - Go back to the directory containing the FASTQ files for the Cut and Tag library and contents of the repo.
 - open ./config/config.yaml in a text editor and modify the following lines:
 ```
