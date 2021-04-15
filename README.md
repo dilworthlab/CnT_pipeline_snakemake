@@ -176,7 +176,7 @@ SEACRLoc: /path/to/SEACR-master/SEACR_1.3.sh  # No quotes
 
 # STEP 4: Run Pipeline with Snakemake
 
-In the directory, call Snakemake with ```--profile <profile.name>```:
+**In the directory, call Snakemake with ```--profile <profile.name>```:**
 
 
 ```
