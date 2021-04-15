@@ -43,11 +43,14 @@ The Samples.tsv file allows the user to organize metadata for the library. The m
 
 
 # STEP 1: Get repository
-**1) Clone repo**
+
+**1) Set up a Virtual Environment (with or without Conda)**
+
+**2) Clone repo**
 
 ``` git clone https://github.com/dilworthlab/CnT_pipeline_snakemake.git ```
 
-**2) Move raw FASTQ files into the directory**
+**3) Move raw FASTQ files into the directory**
 
 The resulting directory will contain the following:
 
