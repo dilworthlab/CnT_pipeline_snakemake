@@ -133,13 +133,14 @@ rule all:
 rule check_md5:
     input:
         expand(f'{ROOT_DIR}/{{fastqfile}}_{{read}}.fastq.gz', fastqfile=FASTQFILES, read=READS)
+        f'{ROOT_DIR}/md5sum.txt'
     output:
         f'{ROOT_DIR}/hashes'
     log:
         'logs/md5checks.log'
     run:
         shell( "md5sum {ROOT_DIR}/*.fastq.gz > {ROOT_DIR}/hashes " )
-        shell( "md5sum --check {ROOT_DIR}/hashes &>> {log} " )
+        shell( "md5sum --check {ROOT_DIR}/md5sum.txt &>> {log} " )
 
         shell( " python ./Scripts/md5checks.py " )
 

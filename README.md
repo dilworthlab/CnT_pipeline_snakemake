@@ -32,7 +32,11 @@ This pipeline starts with raw sequencing FASTQ files, R1 and R2 for each samples
 {SAMPLE-NAME}_{READ}.fastq.gz
 ```
 
-**3) Metadata Sheet: Samples.tsv**
+**3) Md5sum hashes**
+
+A text file containing md5sum hashes and corresponding file names **MUST** be provided. The file **Should** be called "md5sum.txt".
+
+**4) Metadata Sheet: Samples.tsv**
 
 The Samples.tsv file allows the user to organize metadata for the library. The minimum information that **MUST** be provided is:
 
@@ -77,7 +81,9 @@ The resulting directory will contain the following:
 |
 |-- Scripts
 |
-|-- ** YOUR FASTQ READS **
+|-- ** YOUR FASTQ READS DIR **
+|       |-- *.fastq.gz
+|       |-- md5sum.txt
 
 ```
 
