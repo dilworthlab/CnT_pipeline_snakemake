@@ -132,7 +132,7 @@ rule all:
 # Check md5sum
 rule check_md5:
     input:
-        expand(f'{ROOT_DIR}/{{fastqfile}}_{{read}}.fastq.gz', fastqfile=FASTQFILES, read=READS)
+        expand(f'{ROOT_DIR}/{{fastqfile}}_{{read}}.fastq.gz', fastqfile=FASTQFILES, read=READS),
         f'{ROOT_DIR}/md5sum.txt'
     output:
         f'{ROOT_DIR}/hashes'
