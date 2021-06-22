@@ -110,8 +110,7 @@ rule all:
         expand('logs/Spike_Alignment/dupstats/{fastqfile}_picard.dupMark.txt', fastqfile=FASTQFILES),
         "Analysis_Results/primary_alignment/filteringbamsStats.html",
         expand('logs/filtered_bams/{fastqfile}_picard.rmDup.txt', fastqfile=FASTQFILES),
-        expand("All_output/Processed_reads/{fastqfile}.MappedPaired.bam", fastqfile=FASTQFILES),
-        expand("All_output/Processed_reads/{fastqfile}.MappedPaired.MAPQ10.bam", fastqfile=FASTQFILES),
+        expand('All_output/Processed_reads/{fastqfile}.MappedPaired.MAPQ10.bam', fastqfile=FASTQFILES),
         expand("All_output/Processed_reads/{fastqfile}.MappedPaired.MAPQ10.NoDups.bam", fastqfile=FASTQFILES),
         "Analysis_Results/primary_alignment/Alignment_results.html",
         expand("logs/primary_alignment/PostAlignmentStats/dupstats/{fastqfile}.dupMarked.bam", fastqfile=FASTQFILES),
@@ -279,8 +278,7 @@ rule Filtering_bams_PicardSamtools:
     input:
         sortedbam='All_output/Mapped_reads/{fastqfile}.coordsorted.bam'
     output:
-        MappedPairedBam='All_output/Processed_reads/{fastqfile}.MappedPaired.bam',
-        MAPQfiltBam='All_output/Processed_reads/{fastqfile}.MappedPaired.MAPQ10.bam',
+        MAPQfiltMappedPairedBam='All_output/Processed_reads/{fastqfile}.MappedPaired.MAPQ10.bam',
         NoDupsBam='All_output/Processed_reads/{fastqfile}.MappedPaired.MAPQ10.NoDups.bam',
         rmDups='logs/filtered_bams/{fastqfile}_picard.rmDup.txt',
         nodupsBamindex='All_output/Processed_reads/{fastqfile}.MappedPaired.MAPQ10.NoDups.bam.bai',
@@ -297,9 +295,8 @@ rule Filtering_bams_PicardSamtools:
         runtime=1440
     shell:
         """
-        samtools view -bu {params.Prop_paired} {input.sortedbam} | samtools sort - -o {output.MappedPairedBam} &>> {log}
+        samtools view -bu {params.Prop_paired} {input.sortedbam} | samtools view -b {params.Mapq10} - | samtools sort - -o {output.MAPQfiltMappedPairedBam} &>> {log}
 
-        samtools view -b {params.Mapq10} {output.MappedPairedBam} | samtools sort - -o {output.MAPQfiltBam} &>> {log}
 
         {params.picardloc} MarkDuplicates -I {output.MAPQfiltBam} \
                                    -O {output.NoDupsBam} \
@@ -311,6 +308,7 @@ rule Filtering_bams_PicardSamtools:
         samtools index {output.NoDupsBam}
 
         samtools index {output.MAPQfiltBam}
+
 
         """
 

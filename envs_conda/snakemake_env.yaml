@@ -15,5 +15,5 @@ dependencies:
   - cutadapt >=2.6
   - fastqc >=0.11.9
   - samtools >=1.11
-  - openjdk >=13.0.2
+  - picard >= 2.22.5
   - seacr >=1.3
