@@ -60,7 +60,7 @@ http://igenomes.illumina.com.s3-website-us-east-1.amazonaws.com/Homo_sapiens/UCS
 
 **1) Set up a Virtual Environment (with or without Conda)**
 
-### With Conda (Make sure anaconda/miniconda is installed)
+ With Conda (Make sure anaconda/miniconda is installed)
 ```
 conda env create -f snakemake_CnT_env.yaml
 ```
@@ -71,7 +71,7 @@ conda activate CnT_env
 **2) Clone repo**
 
 ```
-git clone https://github.com/dilworthlab/CnT_pipeline_snakemake.git 
+git clone https://github.com/dilworthlab/CnT_pipeline_snakemake.git
 ```
 
 **3) Move raw FASTQ files into the directory**
