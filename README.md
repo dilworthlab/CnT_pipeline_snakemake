@@ -45,7 +45,7 @@ The Samples.tsv file allows the user to organize metadata for the library. The m
 - **Condition**: The two options here are: 'IgG' or 'TargetFile'. This is important because if IgG is specified, it will it use it as a control file when calling peaks.
 
 
-**5) To download
+**5) To download**
 Bowtie2 index for either Mus musculus or Homo sapiens
 
 This can be directly downloaded from iGenomes
@@ -60,7 +60,7 @@ http://igenomes.illumina.com.s3-website-us-east-1.amazonaws.com/Homo_sapiens/UCS
 
 **1) Set up a Virtual Environment (with or without Conda)**
 
-# With Conda (Make sure anaconda/miniconda is installed)
+### With Conda (Make sure anaconda/miniconda is installed)
 ```
 conda env create -f snakemake_CnT_env.yaml
 ```
@@ -131,6 +131,10 @@ cp /path/to/repo/Reference_files/cookiecutter/default_res_config.yaml ~/.config/
 
 ```
 cp /path/to/repo/Reference_files/cookiecutter/config.yaml ~/.config/snakemake/Slurm_CnT
+```
+
+```
+cd ~/.config/snakemake/Slurm_CnT
 ```
 
 ```
