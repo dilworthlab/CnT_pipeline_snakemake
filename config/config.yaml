@@ -1,13 +1,33 @@
 --- 
+# User defined
+Species: "Mus musculus"  # Mus musculus or Homo sapiens
+Spikein: "Amp"  # Amp or Bacteria
 PicardLoc: 
+SEACRLoc: 
+bowtie2_index: # download from iGenomes
+read_lenght:  "50" # 50, 75 etc
+
+
+
+
+
+
+
+
+sample_info: ./config/Samples.tsv
 Spike_align: "-p 8 --end-to-end --very-sensitive --no-overlap --no-dovetail --no-mixed --no-discordant --phred33 -I 10 -X 700"
-Spikein_index: ./Reference_files/Spikein_indices/Amp_pbluescript/Amp_index/Amp_pBlue
 bamCov_default: "--binSize 10 --ignoreForNormalization 'chrM' --extendReads"
 bamCov_min: "--binSize 10 --extendReads"
-bamCov_RPGC: "--binSize 10 --normalizeUsing 'RPGC' --effectiveGenomeSize 2308125349 --ignoreForNormalization 'chrM' --extendReads"
+bamCov_RPGC: "--binSize 10 --normalizeUsing 'RPGC'  --ignoreForNormalization 'chrM' --extendReads"
 genome_align: "-p 8 --local --very-sensitive-local --no-unal --no-mixed --no-discordant --phred33 -I 10 -X 700"
-genome_index: 
-sample_info: ./config/Samples.tsv
 samtools_mapq: "-q 10"
 samtools_proper_paired: "-f 2"
-SEACRLoc: 
+
+
+
+
+# Spikein
+Spikein_index_amp: ./Reference_files/Spikein_indices/Amp_pbluescript/Amp_index/Amp_pBlue
+Spikein_index_Ecoli:  ./Reference_files/Spikein_indices/EcoliK12_index/EcoliK12Index/EcoliK12
+
+

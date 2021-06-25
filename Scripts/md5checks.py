@@ -5,7 +5,7 @@
 
 
 md5Dict = {}
-with open('logs/md5checks.log', "r") as file:
+with open('logs/md5check/md5checks.log', "r") as file:
             Lines = file.readlines()
             
             for line in Lines:

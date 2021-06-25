@@ -45,10 +45,28 @@ The Samples.tsv file allows the user to organize metadata for the library. The m
 - **Condition**: The two options here are: 'IgG' or 'TargetFile'. This is important because if IgG is specified, it will it use it as a control file when calling peaks.
 
 
+**5) To download
+Bowtie2 index for either Mus musculus or Homo sapiens
+
+This can be directly downloaded from iGenomes
+- Mouse
+http://igenomes.illumina.com.s3-website-us-east-1.amazonaws.com/Mus_musculus/UCSC/mm10/Mus_musculus_UCSC_mm10.tar.gz
+
+- Human
+http://igenomes.illumina.com.s3-website-us-east-1.amazonaws.com/Homo_sapiens/UCSC/hg38/Homo_sapiens_UCSC_hg38.tar.gz
+
 
 # STEP 1: Get repository
 
 **1) Set up a Virtual Environment (with or without Conda)**
+
+# With Conda (Make sure anaconda/miniconda is installed)
+```
+conda env create -f snakemake_CnT_env.yaml
+```
+```
+conda activate CnT_env
+```
 
 **2) Clone repo**
 
@@ -66,11 +84,10 @@ The resulting directory will contain the following:
 |   |-- Samples.tsv
 |
 |-- envs_conda
-|   |-- snakemake_env.yaml    
+|   |-- snakemake_CnT_env.yaml    
 |
 |-- envs_wo_conda
-|   |-- Requirements.txt
-|   |-- modules_step2_option1.txt
+|   |-- Software_Requirements.txt
 |
 |-- Reference_files
 |   |-- Spikein_indices
@@ -78,6 +95,7 @@ The resulting directory will contain the following:
 |       |-- EcoliK12_index       #(U00096.3 - https://www.ncbi.nlm.nih.gov/nuccore/545778205)
 |   |-- cookiecutter
 |       |-- default_res_config.yaml
+|       |-- config.yaml
 |
 |-- Scripts
 |
@@ -90,37 +108,41 @@ The resulting directory will contain the following:
 
 
 
-# STEP 2: Cookiecutter installation and SLURM profile configuration
+# STEP 2: Cookiecutter installation and SLURM profile configuration - ONLY NEEDS TO BE DONE ONCE
 
- **1) Install cookiecutter - https://cookiecutter.readthedocs.io/en/1.7.2/installation.html**
-
-```
- pip install cookiecutter
-```
- **2) Get SLURM profile - https://github.com/Snakemake-Profiles/slurm**
 
 ```
-mkdir ~/.config/snakemake_CnT
-cd  ~/.config/snakemake_CnT
+mkdir -p ~/.config/snakemake
+```
+
+```
+cd  ~/.config/snakemake
+```
+```
 cookiecutter https://github.com/Snakemake-Profiles/slurm.git
+```
 
 # In the setup prompt, add your <profile name> (e.g. Slurm_CnT). Others can be left empty.
+
+
+```
+cp /path/to/repo/Reference_files/cookiecutter/default_res_config.yaml ~/.config/snakemake/Slurm_CnT
 ```
 
-**3) Add cluster details**
 ```
-# change dir
-cd ~/.config/snakemake_CnT/Slurm_CnT (# profile name)
+cp /path/to/repo/Reference_files/cookiecutter/config.yaml ~/.config/snakemake/Slurm_CnT
+```
 
-# open config.yaml and add this line at the end: 'jobs: 100', close file.
-vim config.yaml
-
-# mv default_res_config.yaml into this folder
-mv  /path/to/repo/Reference_files/cookiecutter/default_res_config.yaml  ~/.config/snakemake_CnT/Slurm_CnT
-
+```
 # edit slurm-submit.py
+
 add "/path/to/default_res_config.yaml" to:
-CLUSTER_CONFIG = <HERE> # under "cookiecutter arguments"
+
+CLUSTER_CONFIG = <HERE> # (under "cookiecutter arguments")
+
+# Make sure you enter the ABSOLUTE PATH
+# wrong = "~/path/to/dir" ('~' is not valid python syntax)
+# right = "/home/user/path/to/dir"
 ```
 
 For more information, refer to this very informative blog post: http://bluegenes.github.io/Using-Snakemake_Profiles/
@@ -129,54 +151,36 @@ For more information, refer to this very informative blog post: http://bluegenes
 
 
 
+
 # STEP 3: Snakefile Configuration
 
-**1) Download Bowtie2 index from iGenomes**
-https://support.illumina.com/sequencing/sequencing_software/igenome.html
-```
-# change directory to Reference_files
-cd Reference_files
 
-# E.g. for Mus musculus (UCSC mm10) genome:
-wget http://igenomes.illumina.com.s3-website-us-east-1.amazonaws.com/Mus_musculus/UCSC/mm10/Mus_musculus_UCSC_mm10.tar.gz
-
-tar -xvf Mus_musculus_UCSC_mm10.tar.gz
-
-```
 
 **2) Configure workflow using config.yaml**
-- Go back to the directory containing the FASTQ files for the Cut and Tag library and contents of the repo.
+
 - open ./config/config.yaml in a text editor and modify the following lines:
 ```
-# Primary genome index location
-
-## e.g. Mus musculus (UCSC mm10)
-genome_index: ./Reference_files/Mus_musculus/UCSC/mm10/Sequence/Bowtie2Index/genome
-
-## any other index
-genome_index: ./Reference_files/path/to/genome/index
-
-# Change "effective genome size" - default is for mouse
-bamCov_RPGC:
-
-# Spike-in index location
-
-### Default - sequence for Ampr
-Spikein_index: ./Reference_files/Spikein_indices/Amp_pbluescript/Amp_index/Amp_pBlue
-
-### E coli K12
-Spikein_index: ./Reference_files/Spikein_indices/EcoliK12_index/EcoliK12Index/EcoliK12
-
-### Any other index
-Spikein_index: /path/to/Spikein_index/{index_prefix}
 
 
+
+# Species (Default: Mus musculus)
+"Mus musculus" or "Homo Sapiens"
+
+# Spikein (Default: Amp)
+"Amp" or "Bacteria"
+
+# Primary genome index
+bowtie2_index: "/path/to/bowtie2/index/prefix" # don't forget prefix
 
 # Picard location/Command
 PicardLoc: "java -jar /path/to/picard.jar" # don't forget quotes
 
 # SEACR location
 SEACRLoc: /path/to/SEACR-master/SEACR_1.3.sh  # No quotes
+
+# read_lenght (Default = "50")
+
+
 ```
 
 
@@ -185,11 +189,11 @@ SEACRLoc: /path/to/SEACR-master/SEACR_1.3.sh  # No quotes
 
 # STEP 4: Run Pipeline with Snakemake
 
-**In the directory, call Snakemake with ```--profile <profile.name>```:**
+**In the directory containing the Snakefile, call Snakemake with ```--profile <profile.name>```:**
 
 
 ```
-snakemake --profile Slurm_CnT # with example profile name "Slurm_CnT"
+snakemake --profile Slurm_CnT  # with example profile name "Slurm_CnT"
 ```
 
 
@@ -210,8 +214,6 @@ For more information, refer to the very well documented Snakemake docs - https:/
 
 
 
-# Extra Notes
-
 
 ## Output files
 
@@ -221,7 +223,7 @@ For more information, refer to the very well documented Snakemake docs - https:/
 |  |-- QC_Rawreads
 |  |-- Trimming
 |  |-- primary_alignment
-|  |-- RPGC_and_Unnormalized_bws
+|  |-- RPGC_and_Unnormalized_bws  # Non-spikein normalized bigwigs for reference purposes
 |  |-- Spikein_alignment
 |  |-- Spikein_normalized_bws_bdgs
 |  |-- Peaks
@@ -235,20 +237,7 @@ For more information, refer to the very well documented Snakemake docs - https:/
 |-- logs  # Logs of all jobs that were run
 ```
 
-## Spike-in normalization
 
-Normalization factors for a set of libraries associated with a particular histone or transcription factor
-is calculated using reads mapped to the Spike-in sequence. Normalization factors for each sample is
-calculated as:
-
-<img src="https://latex.codecogs.com/gif.latex?Normalization&space;Factor&space;=&space;{\frac{Spike_{min}&space;}&space;{Spike_{Sample}&space;}&space;}"/>
-
-where:
-
-1) Spike_min = No. of reads corresponding to the sample with minimum number of mapped
-reads within the set,
-2) Spike_Sample = No. of total mapped reads corresponding to the sample for which the normalization
-factor is being calculated.
 
 # References
 

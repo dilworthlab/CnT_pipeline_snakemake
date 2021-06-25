@@ -2,6 +2,7 @@ import pandas as pd
 import numpy as np
 import glob
 import os
+import fnmatch
 import yaml
 from pathlib import Path
 
@@ -56,9 +57,6 @@ else:
 
 
 
-
-
-
 # Getting directory containing rawreads
 wdir = os.getcwd()
 for filepath, dirs, allfiles in os.walk(wdir):
@@ -68,8 +66,23 @@ for filepath, dirs, allfiles in os.walk(wdir):
             ROOT_DIR = os.path.relpath(filepath, wdir)
 
 
-
 logger.info(f'This is the RawReads dir: {READS_DIR}')
+logger.info(f'This is the RawReads dir: {ROOT_DIR}')
+
+
+# Finding md5
+def findmd5(ROOT_DIR):
+    try:
+        for _file_ in os.listdir(READS_DIR):
+            if fnmatch.fnmatch(_file_, '*md5*.txt'):
+                PATH2MD5 = os.path.join(READS_DIR, _file_)
+                logger.info(f'md5sum file: {PATH2MD5}')
+                return PATH2MD5
+
+    except:
+        logger.info(f'Can not locate md5sum.txt, make sure it is included in the raw-reads directory ')
+
+
 
 # Describing wildcards
 SINGLE_READ = f'{READS_DIR}/{{fastqfile}}_{{read}}.fastq.gz'
@@ -89,6 +102,33 @@ logger.info(f'Each sample has {READS}')
 logger.info(f'IgG control: {IGGREADS}')
 logger.info(f'Target files: {TARGETS}')
 
+
+EGS_GRCh38 = {'50': '2308125349', '75': '2747877777', '100': '2805636331', '150': '2862010578', '200': '2887553303'}
+EGS_GRCm38 = {'50': '2308125349', '75': '2407883318', '100': '2467481108', '150': '2494787188', '200': '2520869189'}
+
+
+# Species
+
+READLENGHT = config['read_lenght']
+
+if config['Species'] == 'Mus musculus':
+    EFFECTIVEGENOMESIZE = EGS_GRCm38[READLENGHT]
+
+
+if config['Species'] == 'Homo sapiens':
+    EFFECTIVEGENOMESIZE = EGS_GRCh38[READLENGHT]
+
+
+# Spike
+if config['Spikein'] == 'Amp':
+    SPIKEINDEX = config['Spikein_index_amp']
+
+if config['Spikein'] == 'Bacteria':
+    SPIKEINDEX = config['Spikein_index_Ecoli']
+
+
+localrules: Clean_up
+
 rule all:
     input:
         expand("Analysis_Results/Peaks/{fastqfile}.stringent.bed",fastqfile=TARGETS),
@@ -102,7 +142,6 @@ rule all:
         expand('Analysis_Results/RPGC_and_Unnormalized_bws/{fastqfile}_RPGC.bw', fastqfile=FASTQFILES),
         expand('Analysis_Results/RPGC_and_Unnormalized_bws/{fastqfile}_wo.norm.bw', fastqfile=FASTQFILES),
         expand('Analysis_Results/RPGC_and_Unnormalized_bws/{fastqfile}_wo.norm_wDups.bw', fastqfile=FASTQFILES),
-        expand('Analysis_Results/RPGC_and_Unnormalized_bws/{fastqfile}_wo.norm.bedgraph', fastqfile=FASTQFILES),
         expand('All_output/Spike_mapped_reads/{fastqfile}.coordsorted.bam',fastqfile=FASTQFILES),
         expand('All_output/Spike_mapped_reads/{fastqfile}.bam', fastqfile=FASTQFILES),
         expand('All_output/Spike_mapped_reads/{fastqfile}.coordsorted.bam.bai', fastqfile=FASTQFILES),
@@ -124,22 +163,22 @@ rule all:
         "Analysis_Results/QC_Rawreads/Rawreads_QC.html",
         expand("Analysis_Results/QC_Rawreads/{fastqfile}_{read}_fastqc.html", fastqfile=FASTQFILES, read=READS),
         expand("Analysis_Results/QC_Rawreads/{fastqfile}_{read}_fastqc.zip", fastqfile=FASTQFILES, read=READS),
-        f'{ROOT_DIR}/hashes'
 
 
 
-# Check md5sum
+
+
+
 rule check_md5:
     input:
         expand(f'{ROOT_DIR}/{{fastqfile}}_{{read}}.fastq.gz', fastqfile=FASTQFILES, read=READS),
-        f'{ROOT_DIR}/md5sum.txt'
+        findmd5
     output:
-        f'{ROOT_DIR}/hashes'
+        directory('logs/md5check')
     log:
-        'logs/md5checks.log'
+        'logs/md5check/md5checks.log'
     run:
-        shell( "md5sum {ROOT_DIR}/*.fastq.gz > {ROOT_DIR}/hashes " )
-        shell( "md5sum --check {ROOT_DIR}/md5sum.txt &>> {log} " )
+        shell( "md5sum --check {input[1]} &>> {log} " )
 
         shell( " python ./Scripts/md5checks.py " )
 
@@ -148,7 +187,7 @@ rule check_md5:
 rule QCrawreads_Fastqc:
     input:
         f'{ROOT_DIR}/{{fastqfile}}_{{read}}.fastq.gz',
-        f'{ROOT_DIR}/hashes'
+        'logs/md5check/md5checks.log'
     output:
         ('Analysis_Results/QC_Rawreads/{fastqfile}_{read}_fastqc.html'),
         ('Analysis_Results/QC_Rawreads/{fastqfile}_{read}_fastqc.zip')
@@ -203,11 +242,11 @@ rule Map_Bowtie2:
         Trim_read1='All_output/Trimmed_reads/{fastqfile}_Trimmed_R1.fastq',
         Trim_read2='All_output/Trimmed_reads/{fastqfile}_Trimmed_R2.fastq'
     output:
-        'All_output/Mapped_reads/{fastqfile}.bam',
+        temp('All_output/Mapped_reads/{fastqfile}.bam'),
         sortedBam='All_output/Mapped_reads/{fastqfile}.coordsorted.bam',
         bai='All_output/Mapped_reads/{fastqfile}.coordsorted.bam.bai'
     params:
-        genome=config['genome_index'],
+        index=config['bowtie2_index'],
         align=config['genome_align'],
         picardloc=config['PicardLoc']
     log:
@@ -219,7 +258,7 @@ rule Map_Bowtie2:
         runtime=1440
     shell:
         """
-        bowtie2 {params.align} -x {params.genome} \
+        bowtie2 {params.align} -x {params.index} \
         -1 {input.Trim_read1} -2 {input.Trim_read2} 2> {log.bowtie2} | samtools view -bS - > {output[0]}
 
         {params.picardloc} SortSam -I {output[0]} -O {output.sortedBam} -SORT_ORDER coordinate &>> {log.picard}
@@ -233,7 +272,7 @@ rule Collect_alignment_stats:
     input:
         sortedbam='All_output/Mapped_reads/{fastqfile}.coordsorted.bam'
     output:
-        ('logs/primary_alignment/PostAlignmentStats/dupstats/{fastqfile}.dupMarked.bam'),
+        temp('logs/primary_alignment/PostAlignmentStats/dupstats/{fastqfile}.dupMarked.bam'),
         DupStats='logs/primary_alignment/PostAlignmentStats/dupstats/{fastqfile}_picard.dupMark.txt'
     params:
         picardloc=config['PicardLoc']
@@ -255,7 +294,7 @@ rule Collect_alignment_stats:
 
 rule Compileresults_map:
     input:
-        expand(['logs/primary_alignment/PostAlignmentStats/dupstats/{fastqfile}.log' ,
+        expand(['logs/primary_alignment/PostAlignmentStats/dupstats/{fastqfile}.log',
         'logs/primary_alignment/PostAlignmentStats/flagstat/{fastqfile}.log',
         "logs/primary_alignment/bowtie2/{fastqfile}.log",
         "logs/primary_alignment/picard_sort/{fastqfile}.log",
@@ -278,11 +317,11 @@ rule Filtering_bams_PicardSamtools:
     input:
         sortedbam='All_output/Mapped_reads/{fastqfile}.coordsorted.bam'
     output:
-        MAPQfiltMappedPairedBam='All_output/Processed_reads/{fastqfile}.MappedPaired.MAPQ10.bam',
+        'All_output/Processed_reads/{fastqfile}.MappedPaired.MAPQ10.bam',
+        'All_output/Processed_reads/{fastqfile}.MappedPaired.MAPQ10.bam.bai',
         NoDupsBam='All_output/Processed_reads/{fastqfile}.MappedPaired.MAPQ10.NoDups.bam',
         rmDups='logs/filtered_bams/{fastqfile}_picard.rmDup.txt',
         nodupsBamindex='All_output/Processed_reads/{fastqfile}.MappedPaired.MAPQ10.NoDups.bam.bai',
-        MAPQfiltBamindex='All_output/Processed_reads/{fastqfile}.MappedPaired.MAPQ10.bam.bai'
     log:
         'logs/filtered_bams/{fastqfile}.log'
     params:
@@ -295,10 +334,10 @@ rule Filtering_bams_PicardSamtools:
         runtime=1440
     shell:
         """
-        samtools view -bu {params.Prop_paired} {input.sortedbam} | samtools view -b {params.Mapq10} - | samtools sort - -o {output.MAPQfiltMappedPairedBam} &>> {log}
+        samtools view -bu {params.Prop_paired} {input.sortedbam} | samtools view -b {params.Mapq10} - | samtools sort - -o {output[0]} &>> {log}
 
 
-        {params.picardloc} MarkDuplicates -I {output.MAPQfiltBam} \
+        {params.picardloc} MarkDuplicates -I {output[0]} \
                                    -O {output.NoDupsBam} \
                                    -REMOVE_DUPLICATES true \
                                    -METRICS_FILE {output.rmDups} &>> {log}
@@ -307,7 +346,7 @@ rule Filtering_bams_PicardSamtools:
 
         samtools index {output.NoDupsBam}
 
-        samtools index {output.MAPQfiltBam}
+        samtools index {output[0]}
 
 
         """
@@ -323,6 +362,7 @@ rule Compileresults_filtering:
         "multiqc ./logs/filtered_bams --force -v -o ./Analysis_Results/primary_alignment -n filteringbamsStats.html &>> {log} "
 
 
+
 rule GetBigwigs_BamCoverage:
     input:
         NoDupsBam='All_output/Processed_reads/{fastqfile}.MappedPaired.MAPQ10.NoDups.bam',
@@ -333,7 +373,6 @@ rule GetBigwigs_BamCoverage:
         bigwig_RPGC='Analysis_Results/RPGC_and_Unnormalized_bws/{fastqfile}_RPGC.bw',
         bigwig_WOnorm='Analysis_Results/RPGC_and_Unnormalized_bws/{fastqfile}_wo.norm.bw',
         bigwig_WOnorm_wDups='Analysis_Results/RPGC_and_Unnormalized_bws/{fastqfile}_wo.norm_wDups.bw',
-        bdg_WOnorm='Analysis_Results/RPGC_and_Unnormalized_bws/{fastqfile}_wo.norm.bedgraph'
     params:
         bamCov_default=config['bamCov_default'],
         bamCov_min=config['bamCov_min'],
@@ -348,13 +387,10 @@ rule GetBigwigs_BamCoverage:
         """
 
         # RPGC
-        bamCoverage --bam {input.NoDupsBam} -o {output.bigwig_RPGC} {params.bamCov_RPGC} 2> {log}
+        bamCoverage --bam {input.NoDupsBam} -o {output.bigwig_RPGC} {params.bamCov_RPGC} --effectiveGenomeSize {EFFECTIVEGENOMESIZE} 2> {log}
 
         # No normalization - bigwig
         bamCoverage --bam {input.NoDupsBam} -o {output.bigwig_WOnorm} {params.bamCov_min} 2> {log}
-
-        # No normalization - bedgraph
-        bamCoverage --bam {input.NoDupsBam} --outFileFormat bedgraph -o {output.bdg_WOnorm} {params.bamCov_default} 2> {log}
 
         # No normalization - with Duplicates
         bamCoverage --bam {input.MAPQfiltBam} -o {output.bigwig_WOnorm_wDups} {params.bamCov_min} 2> {log}
@@ -368,11 +404,10 @@ rule Map2Spikein_Bowtie2:
         Trim_read1='All_output/Trimmed_reads/{fastqfile}_Trimmed_R1.fastq',
         Trim_read2='All_output/Trimmed_reads/{fastqfile}_Trimmed_R2.fastq'
     output:
-        S_bam='All_output/Spike_mapped_reads/{fastqfile}.bam',
-        S_sortedBam='All_output/Spike_mapped_reads/{fastqfile}.coordsorted.bam',
-        S_bai='All_output/Spike_mapped_reads/{fastqfile}.coordsorted.bam.bai'
+        temp('All_output/Spike_mapped_reads/{fastqfile}.bam'),
+        temp('All_output/Spike_mapped_reads/{fastqfile}.coordsorted.bam'),
+        temp('All_output/Spike_mapped_reads/{fastqfile}.coordsorted.bam.bai')
     params:
-        SpikeGenome=config['Spikein_index'],
         alignSpike=config['Spike_align'],
         picardloc=config['PicardLoc']
     log:
@@ -384,12 +419,12 @@ rule Map2Spikein_Bowtie2:
         runtime=1440
     shell:
         """
-        bowtie2 {params.alignSpike} -x {params.SpikeGenome} \
-        -1 {input.Trim_read1} -2 {input.Trim_read2} 2> {log.Spike_bowtie2} | samtools view -Sb - > {output.S_bam}
+        bowtie2 {params.alignSpike} -x {SPIKEINDEX} \
+        -1 {input.Trim_read1} -2 {input.Trim_read2} 2> {log.Spike_bowtie2} | samtools view -Sb - > {output[0]}
 
-        {params.picardloc} SortSam -I {output.S_bam} -O {output.S_sortedBam} -SORT_ORDER coordinate &>> {log.Spike_picard}
+        {params.picardloc} SortSam -I {output[0]} -O {output[1]} -SORT_ORDER coordinate &>> {log.Spike_picard}
 
-        samtools index {output.S_sortedBam}
+        samtools index {output[1]}
 
         """
 
@@ -442,7 +477,7 @@ rule CalcNormFactors:
 rule GetNormBwsBdgs_BamCoverage:
     input:
         NoDupsBam='All_output/Processed_reads/{fastqfile}.MappedPaired.MAPQ10.NoDups.bam',
-        MAPQfiltBam='All_output/Processed_reads/{fastqfile}.MappedPaired.MAPQ10.bam',
+        MAPQfiltMappedPairedBam='All_output/Processed_reads/{fastqfile}.MappedPaired.MAPQ10.bam',
         SpikeAlignStats="Analysis_Results/Spikein_normalized_bws_bdgs/Spike_align_stats.csv"
     output:
         bigwig_Spikenorm='Analysis_Results/Spikein_normalized_bws_bdgs/{fastqfile}_Norm.bw',
@@ -469,7 +504,7 @@ rule GetNormBwsBdgs_BamCoverage:
         print (Sfvalue)
 
                 #with dups
-        shell( "bamCoverage --bam {input.MAPQfiltBam} -o {output.bigwig_Spikenorm_wDups} \
+        shell( "bamCoverage --bam {input.MAPQfiltMappedPairedBam} -o {output.bigwig_Spikenorm_wDups} \
                 --scaleFactor {Sfvalue} {params.bamCov_default} 2> {log} " )
 
         # without dups
@@ -508,3 +543,11 @@ rule Peaks_SEACR:
                 Name = (os.path.basename(Targetfile).split(".")[0]).replace("_Norm", "")
                 shell ( "bash {params.SEACRLoc} {Targetfile} 0.05 non stringent Analysis_Results/Peaks/{Name} &>> {log} " )
                 shell ( "bash {params.SEACRLoc} {Targetfile} 0.05 non relaxed Analysis_Results/Peaks/{Name} &>> {log} " )
+
+rule Clean_up:
+    input:
+        Strin=expand( 'Analysis_Results/Peaks/{fastqfile}.stringent.bed', fastqfile=TARGETS)
+    output:
+        "logs/cleanup.log"
+    shell:
+        " rm *.out &>> {output} "

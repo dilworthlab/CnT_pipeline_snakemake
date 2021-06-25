@@ -1,6 +1,6 @@
 --- 
 __default__: 
-  account: def-jdilwort
+  account: # enter hpc account info
   cpus-per-task: 1
   mem: 20G
   time: 60
