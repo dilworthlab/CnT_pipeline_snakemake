@@ -144,11 +144,11 @@ add "/path/to/default_res_config.yaml" to:
 
 CLUSTER_CONFIG = <HERE> # (under "cookiecutter arguments")
 
-```
 # Make sure you enter the ABSOLUTE PATH
 # wrong = "~/path/to/dir" ('~' is not valid python syntax)
 # right = "/home/user/path/to/dir"
 
+```
 
 For more information, refer to this very informative blog post: http://bluegenes.github.io/Using-Snakemake_Profiles/
 
@@ -187,6 +187,8 @@ SEACRLoc: /path/to/SEACR-master/SEACR_1.3.sh  # No quotes
 
 
 ```
+
+
 
 
 
@@ -242,6 +244,13 @@ For more information, refer to the very well documented Snakemake docs - https:/
 |-- logs  # Logs of all jobs that were run
 ```
 
+# Troubleshooting
+1. Fastq reads are in the folder i.e "CnT_pipeline_snakemake"
+2. All reads have the correct format - {SAMPLE-NAME}_{READ}.fastq.gz
+3. md5sum.txt is in the raw reads folder
+4. Metadata sheet filled
+5. Config file - All "User defined" points filled
+6. Run snakemake in the folder containing the snakefile
 
 
 # References

@@ -67,7 +67,7 @@ for filepath, dirs, allfiles in os.walk(wdir):
 
 
 logger.info(f'This is the RawReads dir: {READS_DIR}')
-logger.info(f'This is the RawReads dir: {ROOT_DIR}')
+
 
 
 # Finding md5
@@ -166,19 +166,18 @@ rule all:
 
 
 
-
+localrules: Clean_up, check_md5
 
 
 rule check_md5:
     input:
-        expand(f'{ROOT_DIR}/{{fastqfile}}_{{read}}.fastq.gz', fastqfile=FASTQFILES, read=READS),
         findmd5
     output:
         directory('logs/md5check')
     log:
         'logs/md5check/md5checks.log'
     run:
-        shell( "md5sum --check {input[1]} &>> {log} " )
+        shell( "md5sum --check {input} &>> {log} " )
 
         shell( " python ./Scripts/md5checks.py " )
 
