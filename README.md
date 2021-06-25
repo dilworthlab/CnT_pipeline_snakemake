@@ -70,7 +70,9 @@ conda activate CnT_env
 
 **2) Clone repo**
 
-``` git clone https://github.com/dilworthlab/CnT_pipeline_snakemake.git ```
+```
+git clone https://github.com/dilworthlab/CnT_pipeline_snakemake.git 
+```
 
 **3) Move raw FASTQ files into the directory**
 
