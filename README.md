@@ -122,7 +122,7 @@ cd  ~/.config/snakemake
 cookiecutter https://github.com/Snakemake-Profiles/slurm.git
 ```
 
-# In the setup prompt, add your <profile name> (e.g. Slurm_CnT). Others can be left empty.
+### In the setup prompt, add your <profile name> (e.g. Slurm_CnT). Others can be left empty.
 
 
 ```
