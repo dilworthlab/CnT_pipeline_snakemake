@@ -21,22 +21,22 @@ The following pipeline can be used to perform quality-control, alignment as well
 
 # General Usage and Important considerations
 
-**1) Execute pipeline separately for each group of samples using the same antibody.**
+## **1) Execute pipeline separately for each group of samples using the same antibody.**
 
 This is because the parameters for Spike-in normalization are dependant on the entire library. Running the pipeline on files from different histone or TF CnT libraries will result in incorrect normalization.
 
-**2) Input Files**
+## **2) Input Files**
 This pipeline starts with raw sequencing FASTQ files, R1 and R2 for each samples. The format **MUST** follow the naming format below:
 
 ```
 {SAMPLE-NAME}_{READ}.fastq.gz
 ```
 
-**3) Md5sum hashes**
+## **3) Md5sum hashes**
 
 A text file containing md5sum hashes and corresponding file names **MUST** be provided. The file **Should** be called "md5sum.txt".
 
-**4) Metadata Sheet: Samples.tsv**
+## **4) Metadata Sheet: Samples.tsv**
 
 The Samples.tsv file allows the user to organize metadata for the library. The minimum information that **MUST** be provided is:
 
@@ -45,7 +45,7 @@ The Samples.tsv file allows the user to organize metadata for the library. The m
 - **Condition**: The two options here are: 'IgG' or 'TargetFile'. This is important because if IgG is specified, it will it use it as a control file when calling peaks.
 
 
-**5) To download**
+## **5) To download**
 Bowtie2 index for either Mus musculus or Homo sapiens
 
 This can be directly downloaded from iGenomes
@@ -144,10 +144,11 @@ add "/path/to/default_res_config.yaml" to:
 
 CLUSTER_CONFIG = <HERE> # (under "cookiecutter arguments")
 
+```
 # Make sure you enter the ABSOLUTE PATH
 # wrong = "~/path/to/dir" ('~' is not valid python syntax)
 # right = "/home/user/path/to/dir"
-```
+
 
 For more information, refer to this very informative blog post: http://bluegenes.github.io/Using-Snakemake_Profiles/
 
