@@ -222,11 +222,11 @@ For more information, refer to the very well documented Snakemake docs - https:/
 
 # END
 
-##**Spike-in normalized bigwigs**
+## **Spike-in normalized bigwigs**
 Your Spike-in normalized bigwigs can be visualized on the UCSC genome browser. They can be found in
 /path/to/repo/**Analysis_Results/Spikein_normalized_bws_bdgs**
 
-##**Spike-in normalized Peaks bedfiles**
+## **Spike-in normalized Peaks bedfiles**
 The peak bedfiles can be used for downstream analysis. They can be found in
 /path/to/repo/**Analysis_Results/Peaks**
 
