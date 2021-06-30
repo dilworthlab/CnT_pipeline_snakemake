@@ -205,8 +205,6 @@ SEACRLoc: /path/to/SEACR-master/SEACR_1.3.sh  # No quotes
 snakemake --profile Slurm_CnT  # with example profile name "Slurm_CnT"
 ```
 
-
-
 #### Troubleshooting Snakemake:
 
 - You can do a 'dry-run' with Snakemake. This allows you to check the workflow before running it.
@@ -222,6 +220,23 @@ snakemake --unlock --profile Slurm_CnT
 For more information, refer to the very well documented Snakemake docs - https://snakemake.readthedocs.io/en/stable/project_info/faq.html
 
 
+# END
+
+##**Spike-in normalized bigwigs**
+Your Spike-in normalized bigwigs can be visualized on the UCSC genome browser. They can be found in
+/path/to/repo/**Analysis_Results/Spikein_normalized_bws_bdgs**
+
+##**Spike-in normalized Peaks bedfiles**
+The peak bedfiles can be used for downstream analysis. They can be found in
+/path/to/repo/**Analysis_Results/Peaks**
+
+## For any issues, please post directly on Github.
+
+
+# OTHER INFORMATION
+
+## Intention
+When analyzing Cut&Tag data, there is need to explore output files at various stages. This is to fine-tune parameters unique to the library i.e. BAM filtering parameters, peak-calling parameters etc. For this reason, the pipeline produces many variations of bigwigs, peaks and filtered bams. This will allow the user to extract the relevant output at any stage and continue the analysis outside of this pipeline.
 
 
 ## Output files
@@ -246,16 +261,24 @@ For more information, refer to the very well documented Snakemake docs - https:/
 |-- logs  # Logs of all jobs that were run
 ```
 
-# Troubleshooting
+## Troubleshooting
 1. Fastq reads are in the folder i.e "CnT_pipeline_snakemake"
 2. All reads have the correct format - {SAMPLE-NAME}_{READ}.fastq.gz
-3. md5sum.txt is in the raw reads folder
+3. md5sum.txt is in the 'raw reads' folder
 4. Metadata sheet filled
 5. Config file - All "User defined" points filled
-6. Run snakemake in the folder containing the snakefile
+6. Run Snakemake in the folder containing the Snakefile
+7. If things are getting too messed up, remove all snakemake output and start again!
 
+## Restarting pipeline from the beginning
 
-# References
+```
+# Remove all output -> https://snakemake.readthedocs.io/en/stable/project_info/faq.html#how-do-i-remove-all-files-created-by-snakemake-i-e-like-make-clean -USE WITH CAUTION!!!!
+
+snakemake some_target --delete-all-output
+```
+
+## References
 
 1- Hatice S. Kaya-Okur, Steven J. Wu, Christine A. Codomo, Erica S. Pledger, Terri D. Bryson, Jorja G. Henikoff, Kami Ahmad, and Steven Henikoff. CUT&Tag for efficient epigenomic profiling of small samples and single cells. Nature Communications, 10, April 2019.
 

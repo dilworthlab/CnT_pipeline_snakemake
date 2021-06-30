@@ -127,21 +127,22 @@ if config['Spikein'] == 'Bacteria':
     SPIKEINDEX = config['Spikein_index_Ecoli']
 
 
-localrules: Clean_up
+#localrules: Clean_up
 
 rule all:
     input:
         expand("Analysis_Results/Peaks/{fastqfile}.stringent.bed",fastqfile=TARGETS),
         "Analysis_Results/Spikein_alignment/Spike_alignment.html",
+        "logs/cleanup.log",
         "Analysis_Results/Spikein_normalized_bws_bdgs/Spike_align_stats.csv",
-        expand("Analysis_Results/Spikein_normalized_bws_bdgs/{fastqfile}_Norm.bedgraph", fastqfile=FASTQFILES),
-        expand("Analysis_Results/Spikein_normalized_bws_bdgs/{fastqfile}_Norm_wDups.bw", fastqfile=FASTQFILES),
-        expand("Analysis_Results/Spikein_normalized_bws_bdgs/{fastqfile}_Norm.bw", fastqfile=FASTQFILES),
+        expand("Analysis_Results/Spikein_normalized_bws_bdgs/Normalized_bedgraphs/{fastqfile}_Norm.bedgraph", fastqfile=FASTQFILES),
+        expand("Analysis_Results/Spikein_normalized_bws_bdgs/Normalized_bigwigs_wDups/{fastqfile}_Norm_wDups.bw", fastqfile=FASTQFILES),
+        expand("Analysis_Results/Spikein_normalized_bws_bdgs/Normalized_bigwigs/{fastqfile}_Norm.bw", fastqfile=FASTQFILES),
         expand('All_output/Processed_reads/{fastqfile}.MappedPaired.MAPQ10.NoDups.bam.bai', fastqfile=FASTQFILES),
         expand('All_output/Processed_reads/{fastqfile}.MappedPaired.MAPQ10.bam.bai', fastqfile=FASTQFILES),
-        expand('Analysis_Results/RPGC_and_Unnormalized_bws/{fastqfile}_RPGC.bw', fastqfile=FASTQFILES),
-        expand('Analysis_Results/RPGC_and_Unnormalized_bws/{fastqfile}_wo.norm.bw', fastqfile=FASTQFILES),
-        expand('Analysis_Results/RPGC_and_Unnormalized_bws/{fastqfile}_wo.norm_wDups.bw', fastqfile=FASTQFILES),
+        expand('Analysis_Results/RPGC_and_Unnormalized_bws/RPGC_normalized_bws/{fastqfile}_RPGC.bw', fastqfile=FASTQFILES),
+        expand('Analysis_Results/RPGC_and_Unnormalized_bws/bws_wo_normalization/{fastqfile}_wo.norm.bw', fastqfile=FASTQFILES),
+        expand('Analysis_Results/RPGC_and_Unnormalized_bws/bws_wo_norm_wDups/{fastqfile}_wo.norm_wDups.bw', fastqfile=FASTQFILES),
         expand('All_output/Spike_mapped_reads/{fastqfile}.coordsorted.bam',fastqfile=FASTQFILES),
         expand('All_output/Spike_mapped_reads/{fastqfile}.bam', fastqfile=FASTQFILES),
         expand('All_output/Spike_mapped_reads/{fastqfile}.coordsorted.bam.bai', fastqfile=FASTQFILES),
@@ -166,7 +167,7 @@ rule all:
 
 
 
-localrules: Clean_up, check_md5
+
 
 
 rule check_md5:
@@ -369,9 +370,9 @@ rule GetBigwigs_BamCoverage:
         nodupsBamindex='All_output/Processed_reads/{fastqfile}.MappedPaired.MAPQ10.NoDups.bam.bai',
         MAPQfiltBamindex='All_output/Processed_reads/{fastqfile}.MappedPaired.MAPQ10.bam.bai'
     output:
-        bigwig_RPGC='Analysis_Results/RPGC_and_Unnormalized_bws/{fastqfile}_RPGC.bw',
-        bigwig_WOnorm='Analysis_Results/RPGC_and_Unnormalized_bws/{fastqfile}_wo.norm.bw',
-        bigwig_WOnorm_wDups='Analysis_Results/RPGC_and_Unnormalized_bws/{fastqfile}_wo.norm_wDups.bw',
+        bigwig_RPGC='Analysis_Results/RPGC_and_Unnormalized_bws/RPGC_normalized_bws/{fastqfile}_RPGC.bw',
+        bigwig_WOnorm='Analysis_Results/RPGC_and_Unnormalized_bws/bws_wo_normalization/{fastqfile}_wo.norm.bw',
+        bigwig_WOnorm_wDups='Analysis_Results/RPGC_and_Unnormalized_bws/bws_wo_norm_wDups/{fastqfile}_wo.norm_wDups.bw',
     params:
         bamCov_default=config['bamCov_default'],
         bamCov_min=config['bamCov_min'],
@@ -479,11 +480,11 @@ rule GetNormBwsBdgs_BamCoverage:
         MAPQfiltMappedPairedBam='All_output/Processed_reads/{fastqfile}.MappedPaired.MAPQ10.bam',
         SpikeAlignStats="Analysis_Results/Spikein_normalized_bws_bdgs/Spike_align_stats.csv"
     output:
-        bigwig_Spikenorm='Analysis_Results/Spikein_normalized_bws_bdgs/{fastqfile}_Norm.bw',
-        bdg_Spikenorm='Analysis_Results/Spikein_normalized_bws_bdgs/{fastqfile}_Norm.bedgraph',
-        bigwig_Spikenorm_wDups='Analysis_Results/Spikein_normalized_bws_bdgs/{fastqfile}_Norm_wDups.bw'
+        bigwig_Spikenorm='Analysis_Results/Spikein_normalized_bws_bdgs/Normalized_bigwigs/{fastqfile}_Norm.bw',
+        bdg_Spikenorm='Analysis_Results/Spikein_normalized_bws_bdgs/Normalized_bedgraphs/{fastqfile}_Norm.bedgraph',
+        bigwig_Spikenorm_wDups='Analysis_Results/Spikein_normalized_bws_bdgs/Normalized_bigwigs_wDups/{fastqfile}_Norm_wDups.bw'
     params:
-        prefix=lambda wildcards, output: output[0][45:-8],
+        prefix=lambda wildcards, output: output[0][64:-8],
         bamCov_default=config['bamCov_default']
     log:
         "logs/Spikein_normalized_bws_bdgs/{fastqfile}.log"
@@ -517,8 +518,8 @@ rule GetNormBwsBdgs_BamCoverage:
 
 rule Peaks_SEACR:
     input:
-        Control=expand( 'Analysis_Results/Spikein_normalized_bws_bdgs/{fastqfile}_Norm.bedgraph', fastqfile=IGGREADS),
-        Target=expand('Analysis_Results/Spikein_normalized_bws_bdgs/{fastqfile}_Norm.bedgraph', fastqfile=TARGETS)
+        Control=expand( 'Analysis_Results/Spikein_normalized_bws_bdgs/Normalized_bedgraphs/{fastqfile}_Norm.bedgraph', fastqfile=IGGREADS),
+        Target=expand('Analysis_Results/Spikein_normalized_bws_bdgs/Normalized_bedgraphs/{fastqfile}_Norm.bedgraph', fastqfile=TARGETS)
     output:
         Strin=expand( 'Analysis_Results/Peaks/{fastqfile}.stringent.bed', fastqfile=TARGETS)
     params:
@@ -548,5 +549,6 @@ rule Clean_up:
         Strin=expand( 'Analysis_Results/Peaks/{fastqfile}.stringent.bed', fastqfile=TARGETS)
     output:
         "logs/cleanup.log"
+    threads: 1
     shell:
         " rm *.out &>> {output} "
