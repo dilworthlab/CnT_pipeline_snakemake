@@ -11,7 +11,7 @@ from snakemake.io import expand, glob_wildcards
 from snakemake.utils import min_version
 from snakemake.logging import logger
 
-
+#------------------------------------------------------------------------------------------------------------------------
 # Minimum snakemake version
 min_version("5.24.1")
 
@@ -19,9 +19,14 @@ min_version("5.24.1")
 configfile:"./config/config.yaml"
 
 # Tabular configuration
-samples = pd.read_csv(config["sample_info"], "\t").set_index("samples")
+samples = pd.read_csv(config["sample_info"], "\t").set_index("TargetFiles")
+#------------------------------------------------------------------------------------------------------------------------
 
 
+
+
+
+#------------------------------------------------------------------------------------------------------------------------
 # Multiqc configuration
 home = str(Path.home())
 datadict = {'log_filesize_limit': 2000000000}
@@ -54,9 +59,13 @@ else:
         documents = yaml.dump(datadict, file)
         print('made new .multiqc_config.yaml')
 
+#------------------------------------------------------------------------------------------------------------------------
 
 
 
+
+
+#------------------------------------------------------------------------------------------------------------------------
 # Getting directory containing rawreads
 wdir = os.getcwd()
 for filepath, dirs, allfiles in os.walk(wdir):
@@ -70,19 +79,6 @@ logger.info(f'This is the RawReads dir: {READS_DIR}')
 
 
 
-# Finding md5
-def findmd5(ROOT_DIR):
-    try:
-        for _file_ in os.listdir(READS_DIR):
-            if fnmatch.fnmatch(_file_, '*md5*.txt'):
-                PATH2MD5 = os.path.join(READS_DIR, _file_)
-                logger.info(f'md5sum file: {PATH2MD5}')
-                return PATH2MD5
-
-    except:
-        logger.info(f'Can not locate md5sum.txt, make sure it is included in the raw-reads directory ')
-
-
 
 # Describing wildcards
 SINGLE_READ = f'{READS_DIR}/{{fastqfile}}_{{read}}.fastq.gz'
@@ -91,41 +87,72 @@ SINGLE_READ = f'{READS_DIR}/{{fastqfile}}_{{read}}.fastq.gz'
 READS = set(glob_wildcards(SINGLE_READ).read)
 FASTQFILES = set(glob_wildcards(SINGLE_READ).fastqfile)
 
-# Control vs non-Control files
-IGGREADS = set( (samples.loc[samples['condition'].str.contains('IgG', case=False)].index).to_list() )
-TARGETS = set( (samples.loc[~samples['condition'].str.contains('IgG', case=False)].index).to_list() )
-
-
 logger.info(f'Sample file format: {SINGLE_READ}')
 logger.info(f'These are the sample names: {FASTQFILES}')
 logger.info(f'Each sample has {READS}')
-logger.info(f'IgG control: {IGGREADS}')
-logger.info(f'Target files: {TARGETS}')
+#------------------------------------------------------------------------------------------------------------------------
 
 
-EGS_GRCh38 = {'50': '2308125349', '75': '2747877777', '100': '2805636331', '150': '2862010578', '200': '2887553303'}
-EGS_GRCm38 = {'50': '2308125349', '75': '2407883318', '100': '2467481108', '150': '2494787188', '200': '2520869189'}
 
 
-# Species
 
-READLENGHT = config['read_lenght']
+#------------------------------------------------------------------------------------------------------------------------
+# Identify groups
+ABGROUPS = samples['AntibodyGroup'].unique().tolist()
 
-if config['Species'] == 'Mus musculus':
-    EFFECTIVEGENOMESIZE = EGS_GRCm38[READLENGHT]
+# All IGG files
+ALL_IGGFILES = samples['IgGFile'].unique().tolist()
+if 'None' in ALL_IGGFILES:
+    ALL_IGGFILES.remove('None')
+
+ALL_TARGETS = samples.index.tolist()
+
+# Get target reads per group
+SampleGroupDict = {}
+
+for ab in ABGROUPS:
+    SampleGroupDict_ = {}
+    GROUP_TARGETS = list(set (samples.loc[samples['AntibodyGroup'] == ab ].index))
+    GROUP_IGGFILES = list(set (samples.loc[samples['AntibodyGroup'] == ab ]['IgGFile']))
+
+    if len(IGGFILES) > 1:
+        raise SyntaxError('More than one type of IgG file indicated for a group/groups, please edit Samplesheet.tsv')
+    else:
+        SampleGroupDict_["Targets"] = GROUP_TARGETS
+        SampleGroupDict_["IgGfiles"] = GROUP_IGGFILES
+        SampleGroupDict[ab] = SampleGroupDict_
 
 
-if config['Species'] == 'Homo sapiens':
-    EFFECTIVEGENOMESIZE = EGS_GRCh38[READLENGHT]
+
+for key, item in SampleGroupDict.items():
+    T = item['Targets']
+    I = item['IgGfiles']
+    logger.info(f'Group: {key}, Targets: {T}, IgG: {I}')
 
 
+
+
+#------------------------------------------------------------------------------------------------------------------------
+
+
+
+
+
+#------------------------------------------------------------------------------------------------------------------------
 # Spike
 if config['Spikein'] == 'Amp':
     SPIKEINDEX = config['Spikein_index_amp']
 
 if config['Spikein'] == 'Bacteria':
     SPIKEINDEX = config['Spikein_index_Ecoli']
+#------------------------------------------------------------------------------------------------------------------------
 
+
+
+
+#------------------------------------------------------------------------------------------------------------------------
+#------------------------------------------------------------------------------------------------------------------------
+#------------------------------------------------------------------------------------------------------------------------
 
 #localrules: Clean_up
 
@@ -134,15 +161,16 @@ rule all:
         expand("Analysis_Results/Peaks/{fastqfile}.stringent.bed",fastqfile=TARGETS),
         "Analysis_Results/Spikein_alignment/Spike_alignment.html",
         "logs/cleanup.log",
-        "Analysis_Results/Spikein_normalized_bws_bdgs/Spike_align_stats.csv",
+        "Analysis_Results/Spikein_normalized_bws_bdgs/ScalingFactors.csv"
+        expand("Analysis_Results/Spikein_normalized_bws_bdgs/ScalingFactors_by_group/{AB_group}_ScalingFactors.csv", AB_group=ABGROUPS),
         expand("Analysis_Results/Spikein_normalized_bws_bdgs/Normalized_bedgraphs/{fastqfile}_Norm.bedgraph", fastqfile=FASTQFILES),
         expand("Analysis_Results/Spikein_normalized_bws_bdgs/Normalized_bigwigs_wDups/{fastqfile}_Norm_wDups.bw", fastqfile=FASTQFILES),
         expand("Analysis_Results/Spikein_normalized_bws_bdgs/Normalized_bigwigs/{fastqfile}_Norm.bw", fastqfile=FASTQFILES),
         expand('All_output/Processed_reads/{fastqfile}.MappedPaired.MAPQ10.NoDups.bam.bai', fastqfile=FASTQFILES),
         expand('All_output/Processed_reads/{fastqfile}.MappedPaired.MAPQ10.bam.bai', fastqfile=FASTQFILES),
-        expand('Analysis_Results/RPGC_and_Unnormalized_bws/RPGC_normalized_bws/{fastqfile}_RPGC.bw', fastqfile=FASTQFILES),
-        expand('Analysis_Results/RPGC_and_Unnormalized_bws/bws_wo_normalization/{fastqfile}_wo.norm.bw', fastqfile=FASTQFILES),
-        expand('Analysis_Results/RPGC_and_Unnormalized_bws/bws_wo_norm_wDups/{fastqfile}_wo.norm_wDups.bw', fastqfile=FASTQFILES),
+        expand('Analysis_Results/CPM_and_Unnormalized_bws/CPM_normalized_bws/{fastqfile}_CPM.bw', fastqfile=FASTQFILES),
+        expand('Analysis_Results/CPM_and_Unnormalized_bws/bws_wo_normalization/{fastqfile}_wo.norm.bw', fastqfile=FASTQFILES),
+        expand('Analysis_Results/CPM_and_Unnormalized_bws/bws_wo_norm_wDups/{fastqfile}_wo.norm_wDups.bw', fastqfile=FASTQFILES),
         expand('All_output/Spike_mapped_reads/{fastqfile}.coordsorted.bam',fastqfile=FASTQFILES),
         expand('All_output/Spike_mapped_reads/{fastqfile}.bam', fastqfile=FASTQFILES),
         expand('All_output/Spike_mapped_reads/{fastqfile}.coordsorted.bam.bai', fastqfile=FASTQFILES),
@@ -170,24 +198,11 @@ rule all:
 
 
 
-rule check_md5:
-    input:
-        findmd5
-    output:
-        directory('logs/md5check')
-    log:
-        'logs/md5check/md5checks.log'
-    run:
-        shell( "md5sum --check {input} &>> {log} " )
-
-        shell( " python ./Scripts/md5checks.py " )
-
 
 #Quality Control FastQC
 rule QCrawreads_Fastqc:
     input:
-        f'{ROOT_DIR}/{{fastqfile}}_{{read}}.fastq.gz',
-        'logs/md5check/md5checks.log'
+        f'{ROOT_DIR}/{{fastqfile}}_{{read}}.fastq.gz'
     output:
         ('Analysis_Results/QC_Rawreads/{fastqfile}_{read}_fastqc.html'),
         ('Analysis_Results/QC_Rawreads/{fastqfile}_{read}_fastqc.zip')
@@ -370,15 +385,15 @@ rule GetBigwigs_BamCoverage:
         nodupsBamindex='All_output/Processed_reads/{fastqfile}.MappedPaired.MAPQ10.NoDups.bam.bai',
         MAPQfiltBamindex='All_output/Processed_reads/{fastqfile}.MappedPaired.MAPQ10.bam.bai'
     output:
-        bigwig_RPGC='Analysis_Results/RPGC_and_Unnormalized_bws/RPGC_normalized_bws/{fastqfile}_RPGC.bw',
-        bigwig_WOnorm='Analysis_Results/RPGC_and_Unnormalized_bws/bws_wo_normalization/{fastqfile}_wo.norm.bw',
-        bigwig_WOnorm_wDups='Analysis_Results/RPGC_and_Unnormalized_bws/bws_wo_norm_wDups/{fastqfile}_wo.norm_wDups.bw',
+        bigwig_CPM='Analysis_Results/CPM_and_Unnormalized_bws/CPM_normalized_bws/{fastqfile}_CPM.bw',
+        bigwig_WOnorm='Analysis_Results/CPM_and_Unnormalized_bws/bws_wo_normalization/{fastqfile}_wo.norm.bw',
+        bigwig_WOnorm_wDups='Analysis_Results/CPM_and_Unnormalized_bws/bws_wo_norm_wDups/{fastqfile}_wo.norm_wDups.bw',
     params:
         bamCov_default=config['bamCov_default'],
         bamCov_min=config['bamCov_min'],
-        bamCov_RPGC=config['bamCov_RPGC']
+        bamCov_CPM=config['bamCov_CPM']
     log:
-        'logs/RPGC_and_Unnormalized_bws/{fastqfile}.log'
+        'logs/CPM_and_Unnormalized_bws/{fastqfile}.log'
     threads: 4
     resources:
         mem_mb=2000,
@@ -386,8 +401,8 @@ rule GetBigwigs_BamCoverage:
     shell:
         """
 
-        # RPGC
-        bamCoverage --bam {input.NoDupsBam} -o {output.bigwig_RPGC} {params.bamCov_RPGC} --effectiveGenomeSize {EFFECTIVEGENOMESIZE} 2> {log}
+        # CPM
+        bamCoverage --bam {input.NoDupsBam} -o {output.bigwig_CPM} {params.bamCov_CPM}  2> {log}
 
         # No normalization - bigwig
         bamCoverage --bam {input.NoDupsBam} -o {output.bigwig_WOnorm} {params.bamCov_min} 2> {log}
@@ -467,7 +482,8 @@ rule CalcNormFactors:
     input:
         html="Analysis_Results/Spikein_alignment/Spike_alignment.html"
     output:
-        SpikeAlignStats="Analysis_Results/Spikein_normalized_bws_bdgs/Spike_align_stats.csv"
+        SpikeAlignStatsbygroup=expand("Analysis_Results/Spikein_normalized_bws_bdgs/ScalingFactors_by_group/{AB_group}_ScalingFactors.csv", AB_group=ABGROUPS),
+        ScalingFactors="Analysis_Results/Spikein_normalized_bws_bdgs/ScalingFactors.csv"
     log:
         'logs/compileresults/Scalefacs.log'
     script:
@@ -478,7 +494,7 @@ rule GetNormBwsBdgs_BamCoverage:
     input:
         NoDupsBam='All_output/Processed_reads/{fastqfile}.MappedPaired.MAPQ10.NoDups.bam',
         MAPQfiltMappedPairedBam='All_output/Processed_reads/{fastqfile}.MappedPaired.MAPQ10.bam',
-        SpikeAlignStats="Analysis_Results/Spikein_normalized_bws_bdgs/Spike_align_stats.csv"
+        ScalingFactors="Analysis_Results/Spikein_normalized_bws_bdgs/ScalingFactors.csv"
     output:
         bigwig_Spikenorm='Analysis_Results/Spikein_normalized_bws_bdgs/Normalized_bigwigs/{fastqfile}_Norm.bw',
         bdg_Spikenorm='Analysis_Results/Spikein_normalized_bws_bdgs/Normalized_bedgraphs/{fastqfile}_Norm.bedgraph',
@@ -496,7 +512,7 @@ rule GetNormBwsBdgs_BamCoverage:
 
         import pandas as pd
 
-        AlignStats = pd.read_csv(input.SpikeAlignStats)
+        AlignStats = pd.read_csv(input.ScalingFactors)
         AlignStats.set_index('Sample', inplace=True)
 
         Sfvalue = AlignStats.loc[params.prefix, 'ScalingFactors']

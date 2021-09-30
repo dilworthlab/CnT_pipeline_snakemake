@@ -1,0 +1,7 @@
+AntibodyGroup	TargetFiles	Replicate	IgGFile
+nE	Wt1-nE	1	IgG_tf
+nE	Wt2-nE	2	IgG_tf
+nE	Ko1-nE	1	IgG_tf
+nE	Ko2-nE	2	IgG_tf
+K4me3	K4me3-Wt	1	None
+K4me3	K4me3-Ko	1	None
