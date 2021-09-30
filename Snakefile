@@ -162,7 +162,6 @@ rule all:
         "Analysis_Results/Spikein_alignment/Spike_alignment.html",
         "logs/cleanup.log",
         "Analysis_Results/Spikein_normalized_bws_bdgs/ScalingFactors.csv"
-        expand("Analysis_Results/Spikein_normalized_bws_bdgs/ScalingFactors_by_group/{AB_group}_ScalingFactors.csv", AB_group=ABGROUPS),
         expand("Analysis_Results/Spikein_normalized_bws_bdgs/Normalized_bedgraphs/{fastqfile}_Norm.bedgraph", fastqfile=FASTQFILES),
         expand("Analysis_Results/Spikein_normalized_bws_bdgs/Normalized_bigwigs_wDups/{fastqfile}_Norm_wDups.bw", fastqfile=FASTQFILES),
         expand("Analysis_Results/Spikein_normalized_bws_bdgs/Normalized_bigwigs/{fastqfile}_Norm.bw", fastqfile=FASTQFILES),
@@ -482,12 +481,11 @@ rule CalcNormFactors:
     input:
         html="Analysis_Results/Spikein_alignment/Spike_alignment.html"
     output:
-        SpikeAlignStatsbygroup=expand("Analysis_Results/Spikein_normalized_bws_bdgs/ScalingFactors_by_group/{AB_group}_ScalingFactors.csv", AB_group=ABGROUPS),
         ScalingFactors="Analysis_Results/Spikein_normalized_bws_bdgs/ScalingFactors.csv"
     log:
-        'logs/compileresults/Scalefacs.log'
+        'logs/compileresults/Scalefactors.log'
     script:
-        'Scripts/GetScalingFactors.py'
+        'Scripts/GetScalingFactorsbyGroup.py'
 
 
 rule GetNormBwsBdgs_BamCoverage:
