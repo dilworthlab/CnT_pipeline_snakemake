@@ -5,7 +5,7 @@ Spikein: "Amp"  # Amp or Bacteria
 PicardLoc:
 SEACRLoc:
 bowtie2_index: # download from iGenomes
-read_lenght:  "50" # 50, 75 etc
+
 
 
 
