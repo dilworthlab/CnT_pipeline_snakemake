@@ -4,6 +4,7 @@ import glob
 import os
 import fnmatch
 import yaml
+import math
 from pathlib import Path
 
 
@@ -532,31 +533,32 @@ rule GetNormBwsBdgs_BamCoverage:
 
 rule Peaks_SEACR:
     input:
-        Control=expand( 'Analysis_Results/Spikein_normalized_bws_bdgs/Normalized_bedgraphs/{fastqfile}_Norm.bedgraph', fastqfile=IGGREADS),
-        Target=expand('Analysis_Results/Spikein_normalized_bws_bdgs/Normalized_bedgraphs/{fastqfile}_Norm.bedgraph', fastqfile=TARGETS)
+        Target=expand('Analysis_Results/Spikein_normalized_bws_bdgs/Normalized_bedgraphs/{fastqfile}_Norm.bedgraph', fastqfile=ALL_TARGETS)
     output:
-        Strin=expand( 'Analysis_Results/Peaks/{fastqfile}.stringent.bed', fastqfile=TARGETS)
+        Strin=expand( 'Analysis_Results/Peaks/{fastqfile}.stringent.bed', fastqfile=ALL_TARGETS)
     params:
         SEACRLoc=config['SEACRLoc']
     log:
-        expand( "logs/Peaks/{fastqfile}.log", fastqfile=TARGETS)
+        expand( "logs/Peaks/{fastqfile}.log", fastqfile=ALL_TARGETS)
     threads: 4
     resources:
         mem_mb=2000,
         runtime=1440
     run:
-        if len(input.Control) >= 1:
-            for IgG in input.Control:
-                for Targetfile in input.Target:
-                    Name = (os.path.basename(Targetfile).split(".")[0]).replace("_Norm", "")
-                    shell ( "bash {params.SEACRLoc} {Targetfile} {IgG} non stringent Analysis_Results/Peaks/{Name} &>> {log} " )
-                    shell ( "bash {params.SEACRLoc} {Targetfile} {IgG} non relaxed Analysis_Results/Peaks/{Name} &>> {log} " )
+        key = os.path.basename(input.Target).split("_")[0]
+
+        Control = samples.loc[samples.index.str.contains(key)]['IgGFile'][0]
+
+        if (str(Control).lower() in "none") or (math.isnan(Control) == True):
+            logger.info(f"{params.SEACRLoc} {input.Target} 0.05 non stringent Analysis_Results/Peaks/{key} &>> {log}")
+            shell ( "bash {params.SEACRLoc} {input.Target} 0.05 non stringent Analysis_Results/Peaks/{key} &>> {log} " )
+            shell ( "bash {params.SEACRLoc} {input.Target} 0.05 non relaxed Analysis_Results/Peaks/{key} &>> {log} " )
 
         else:
-            for Targetfile in input.Target:
-                Name = (os.path.basename(Targetfile).split(".")[0]).replace("_Norm", "")
-                shell ( "bash {params.SEACRLoc} {Targetfile} 0.05 non stringent Analysis_Results/Peaks/{Name} &>> {log} " )
-                shell ( "bash {params.SEACRLoc} {Targetfile} 0.05 non relaxed Analysis_Results/Peaks/{Name} &>> {log} " )
+            _IgG_=os.path.join("Analysis_Results/Spikein_normalized_bws_bdgs/Normalized_bedgraphs", f"{Control}_Norm.bedgraph")
+            logger.info(f"{params.SEACRLoc} {input.Target} {_IgG_} non stringent Analysis_Results/Peaks/{key} &>> {log}")
+            shell ( "bash {params.SEACRLoc} {input.Target} {_IgG_} non stringent Analysis_Results/Peaks/{key} &>> {log} " )
+            shell ( "bash {params.SEACRLoc} {input.Target} {_IgG_} non relaxed Analysis_Results/Peaks/{key} &>> {log} " )
 
 rule Clean_up:
     input:
