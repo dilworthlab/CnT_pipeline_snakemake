@@ -52,7 +52,11 @@ for AB_group in Groups:
         
         group_df.to_csv(os.path.join("Analysis_Results/Spikein_normalized_bws_bdgs/ScalingFactors_by_group", NameofFile))
         
-        DictsofSamps.update(dict_df)
+        dict_df = group_df['ScalingFactors'].to_dict()
+        
+        DictsofSamps[AB_group] = dict_df
+        
+        
             
     else:
         testlist = []
@@ -79,9 +83,11 @@ for AB_group in Groups:
         
         group_df.to_csv(os.path.join("Analysis_Results/Spikein_normalized_bws_bdgs/ScalingFactors_by_group", NameofFile))
         
-        DictsofSamps.update(dict_df)
+        dict_df = group_df['ScalingFactors'].to_dict()
+        
+        DictsofSamps[AB_group] = dict_df
+        
+        
 
-DfofSFs = pd.DataFrame(DictsofSamps.items(), columns=['Sample', 'ScalingFactors'])
-DfofSFs = DfofSFs.set_index('Sample')
+DfofSFs = pd.DataFrame(DictsofSamps)
 DfofSFs.to_csv(snakemake.output.ScalingFactors)
-
