@@ -525,15 +525,15 @@ rule GetNormBwsBdgs_BamCoverage:
             logger.info(f'Sfvalue: {Sfvalue}')
 
             #with dups
-            shell( "bamCoverage --bam {MAPQfiltMappedPairedBam} -o {bigwig_Spikenorm_wDups} \
+            shell( "bamCoverage --bam {input.MAPQfiltMappedPairedBam} -o {output.bigwig_Spikenorm_wDups} \
                     --scaleFactor {Sfvalue} {params.bamCov_default} &>> {log} " )
 
             # without dups
-            shell( "bamCoverage --bam {NoDupsBam} -o {bigwig_Spikenorm} \
+            shell( "bamCoverage --bam {input.NoDupsBam} -o {output.bigwig_Spikenorm} \
                     --scaleFactor {Sfvalue} {params.bamCov_default} &>> {log} " )
 
 
-            shell( "bamCoverage --bam {NoDupsBam} --outFileFormat bedgraph -o {bdg_Spikenorm} \
+            shell( "bamCoverage --bam {input.NoDupsBam} --outFileFormat bedgraph -o {output.bdg_Spikenorm} \
                     --scaleFactor {Sfvalue} {params.bamCov_default} &>> {log} " )
 
         else:
