@@ -153,14 +153,16 @@ if config['Spikein'] == 'Bacteria':
 
 
 
+
 #------------------------------------------------------------------------------------------------------------------------
 #------------------------------------------------------------------------------------------------------------------------
 #------------------------------------------------------------------------------------------------------------------------
 
-localrules: Clean_up
+#localrules: Clean_up
 
 rule all:
     input:
+        "logs/Spikein_normalized_bws_bdgs/mockfile.txt",
         expand("Analysis_Results/Peaks/{fastqfile}.stringent.bed",fastqfile=ALL_TARGETS),
         "Analysis_Results/Spikein_alignment/Spike_alignment.html",
         "logs/cleanup.log",
@@ -266,7 +268,7 @@ rule Map_Bowtie2:
     params:
         index=config['bowtie2_index'],
         align=config['genome_align'],
-        picardloc=config['PicardLoc']
+        PicardCmd=config['PicardCmd']
     log:
         bowtie2="logs/primary_alignment/bowtie2/{fastqfile}.log",
         picard="logs/primary_alignment/picard_sort/{fastqfile}.log"
@@ -279,7 +281,7 @@ rule Map_Bowtie2:
         bowtie2 {params.align} -x {params.index} \
         -1 {input.Trim_read1} -2 {input.Trim_read2} 2> {log.bowtie2} | samtools view -bS - > {output[0]}
 
-        {params.picardloc} SortSam -I {output[0]} -O {output.sortedBam} -SORT_ORDER coordinate &>> {log.picard}
+        {params.PicardCmd} SortSam -I {output[0]} -O {output.sortedBam} -SORT_ORDER coordinate &>> {log.picard}
 
         samtools index {output.sortedBam}
 
@@ -293,7 +295,7 @@ rule Collect_alignment_stats:
         temp('logs/primary_alignment/PostAlignmentStats/dupstats/{fastqfile}.dupMarked.bam'),
         DupStats='logs/primary_alignment/PostAlignmentStats/dupstats/{fastqfile}_picard.dupMark.txt'
     params:
-        picardloc=config['PicardLoc']
+        PicardCmd=config['PicardCmd']
     log:
         dupstats='logs/primary_alignment/PostAlignmentStats/dupstats/{fastqfile}.log',
         flagstat='logs/primary_alignment/PostAlignmentStats/flagstat/{fastqfile}.log'
@@ -303,7 +305,7 @@ rule Collect_alignment_stats:
         runtime=1440
     shell:
         """
-        {params.picardloc} MarkDuplicates -I {input.sortedbam} -O {output[0]} -METRICS_FILE {output.DupStats} &>> {log.dupstats}
+        {params.PicardCmd} MarkDuplicates -I {input.sortedbam} -O {output[0]} -METRICS_FILE {output.DupStats} &>> {log.dupstats}
 
         samtools flagstat {input.sortedbam} &>> {log.flagstat}
 
@@ -345,7 +347,7 @@ rule Filtering_bams_PicardSamtools:
     params:
         Prop_paired=config['samtools_proper_paired'],
         Mapq10=config['samtools_mapq'],
-        picardloc=config['PicardLoc']
+        PicardCmd=config['PicardCmd']
     threads: 8
     resources:
         mem_mb=4000,
@@ -355,7 +357,7 @@ rule Filtering_bams_PicardSamtools:
         samtools view -bu {params.Prop_paired} {input.sortedbam} | samtools view -b {params.Mapq10} - | samtools sort - -o {output[0]} &>> {log}
 
 
-        {params.picardloc} MarkDuplicates -I {output[0]} \
+        {params.PicardCmd} MarkDuplicates -I {output[0]} \
                                    -O {output.NoDupsBam} \
                                    -REMOVE_DUPLICATES true \
                                    -METRICS_FILE {output.rmDups} &>> {log}
@@ -427,7 +429,7 @@ rule Map2Spikein_Bowtie2:
         temp('All_output/Spike_mapped_reads/{fastqfile}.coordsorted.bam.bai')
     params:
         alignSpike=config['Spike_align'],
-        picardloc=config['PicardLoc']
+        PicardCmd=config['PicardCmd']
     log:
         Spike_bowtie2="logs/Spike_Alignment/bowtie2/{fastqfile}.log",
         Spike_picard="logs/Spike_Alignment/picard_sort/{fastqfile}.log"
@@ -440,7 +442,7 @@ rule Map2Spikein_Bowtie2:
         bowtie2 {params.alignSpike} -x {SPIKEINDEX} \
         -1 {input.Trim_read1} -2 {input.Trim_read2} 2> {log.Spike_bowtie2} | samtools view -Sb - > {output[0]}
 
-        {params.picardloc} SortSam -I {output[0]} -O {output[1]} -SORT_ORDER coordinate &>> {log.Spike_picard}
+        {params.PicardCmd} SortSam -I {output[0]} -O {output[1]} -SORT_ORDER coordinate &>> {log.Spike_picard}
 
         samtools index {output[1]}
 
@@ -454,7 +456,7 @@ rule Collect_Spikealignment_stats:
         S_DupMarkedBam='logs/Spike_Alignment/dupstats/{fastqfile}.dupMarked.bam',
         S_DupStats='logs/Spike_Alignment/dupstats/{fastqfile}_picard.dupMark.txt'
     params:
-        picardloc=config['PicardLoc']
+        PicardCmd=config['PicardCmd']
     log:
         S_dupstats='logs/Spike_Alignment/dupstats/{fastqfile}.log',
         S_flagstat='logs/Spike_Alignment/flagstat/{fastqfile}.log'
@@ -464,7 +466,7 @@ rule Collect_Spikealignment_stats:
         runtime=1440
     shell:
         """
-        {params.picardloc} MarkDuplicates -I {input.S_sorted_bam} -O {output.S_DupMarkedBam} -METRICS_FILE {output.S_DupStats} &>> {log.S_dupstats}
+        {params.PicardCmd} MarkDuplicates -I {input.S_sorted_bam} -O {output.S_DupMarkedBam} -METRICS_FILE {output.S_DupStats} &>> {log.S_dupstats}
 
         samtools flagstat {input.S_sorted_bam} &>> {log.S_flagstat}
 
@@ -493,7 +495,7 @@ rule CalcNormFactors:
         'Scripts/GetScalingFactorsbyGroup.py'
 
 
-rule GetNormBwsBdgs_BamCoverage:
+rule GetNormBwsBdgs_BamCoverage_NonInput:
     input:
         NoDupsBam='All_output/Processed_reads/{fastqfile}.MappedPaired.MAPQ10.NoDups.bam',
         MAPQfiltMappedPairedBam='All_output/Processed_reads/{fastqfile}.MappedPaired.MAPQ10.bam',
@@ -503,24 +505,23 @@ rule GetNormBwsBdgs_BamCoverage:
         bdg_Spikenorm='Analysis_Results/Spikein_normalized_bws_bdgs/Normalized_bedgraphs/{fastqfile}_Norm.bedgraph',
         bigwig_Spikenorm_wDups='Analysis_Results/Spikein_normalized_bws_bdgs/Normalized_bigwigs_wDups/{fastqfile}_Norm_wDups.bw',
     params:
-        bamCov_default=config['bamCov_default'],
-        prefix=lambda wildcards, output: output[0][64:-8]
+        bamCov_default=config['bamCov_default']
     log:
         "logs/Spikein_normalized_bws_bdgs/{fastqfile}.log",
     run:
 
         AlignStats = pd.read_csv(input.ScalingFactors).rename(columns={'Unnamed: 0': 'Samplename'}).set_index('Samplename')
 
-        if params.prefix in ALL_TARGETS:
+        if wildcards.fastqfile in ALL_TARGETS:
 
-            logger.info(f'prefix: {params.prefix}')
+            logger.info(f'prefix: {wildcards.fastqfile}')
 
-            groupname_ = samples.loc[samples.index == params.prefix]['AntibodyGroup'].tolist()
+            groupname_ = samples.loc[samples.index == wildcards.fastqfile]['AntibodyGroup'].tolist()
             groupname = groupname_[0]
 
             logger.info(f'groupname: {groupname}')
 
-            Sfvalue = AlignStats.loc[params.prefix, groupname]
+            Sfvalue = AlignStats.loc[wildcards.fastqfile, groupname]
 
             logger.info(f'Sfvalue: {Sfvalue}')
 
@@ -536,79 +537,145 @@ rule GetNormBwsBdgs_BamCoverage:
             shell( "bamCoverage --bam {input.NoDupsBam} --outFileFormat bedgraph -o {output.bdg_Spikenorm} \
                     --scaleFactor {Sfvalue} {params.bamCov_default} &>> {log} " )
 
-        else:
-            if params.prefix in ALL_IGGFILES:
 
-                logger.info(f'prefix: {params.prefix}')
+if len(ALL_IGGFILES) != 0:
 
-                for groupname in AlignStats.columns.tolist():
+    rule GetNormBwsBdgs_BamCoverage_Input:
+        input:
+            NoDupsBam=expand('All_output/Processed_reads/{fastqfile}.MappedPaired.MAPQ10.NoDups.bam', fastqfile=ALL_IGGFILES),
+            MAPQfiltMappedPairedBam=expand('All_output/Processed_reads/{fastqfile}.MappedPaired.MAPQ10.bam',fastqfile=ALL_IGGFILES),
+            ScalingFactors="Analysis_Results/Spikein_normalized_bws_bdgs/ScalingFactors.csv",
+        output:
+            logf=expand("logs/Spikein_normalized_bws_bdgs/{fastqfile}.log", fastqfile=ALL_IGGFILES),
+            mockfile=temp("logs/Spikein_normalized_bws_bdgs/mockfile.txt")
+        params:
+            bamCov_default=config['bamCov_default'],
+        threads: 9
+        resources:
+            mem_mb=8000,
+            runtime=1440
+        run:
+            AlignStats = pd.read_csv(input.ScalingFactors).rename(columns={'Unnamed: 0': 'Samplename'}).set_index('Samplename')
 
-                    logger.info(f'groupname: {groupname}')
+            for NoDupsfile in input.NoDupsBam:
 
-                    Sfvalue = AlignStats.loc[params.prefix, groupname]
+                key = os.path.basename(NoDupsfile).split(".")[0]
+                logger.info(f"key: {key}")
 
-                    logger.info(f'Sfvalue: {Sfvalue}')
+                for group in AlignStats.columns.tolist():
+
+                    outputfilename = f"{group}_{key}"
+                    logger.info(f"outputfilename: {outputfilename}")
+
+
+                    # manually defining input based on key (derived from NodupsBam):
+                    MAPQfiltMappedPairedBam_f= [x for x in input.MAPQfiltMappedPairedBam if key in x]
+                    log_f = [x for x in output.logf if key in x]
+
+                    # manually defining outputpaths, outputfiles  based on key (derived from NodupsBam):
+                    outputdirprefix1="Analysis_Results/Spikein_normalized_bws_bdgs/Normalized_bigwigs/Inputs"
+                    outputdirprefix2="Analysis_Results/Spikein_normalized_bws_bdgs/Normalized_bedgraphs/Inputs"
+                    outputdirprefix3="Analysis_Results/Spikein_normalized_bws_bdgs/Normalized_bigwigs_wDups/Inputs"
+
+                    # manually creating directories
+
+                    shell( "mkdir -p {outputdirprefix1}/{key} " )
+                    shell( "mkdir -p {outputdirprefix2}/{key} " )
+                    shell( "mkdir -p {outputdirprefix3}/{key} " )
+
+                    Sfvalue = AlignStats.loc[key, group]
+                    logger.info(f"Sfvalue: {Sfvalue}")
+
 
                     if math.isnan(Sfvalue) == False:
 
-                        OutputPrefix = f"{params.prefix}_group-{groupname}"
 
-                        logger.info(f'outputprefix: {OutputPrefix}')
-
-                        # define output manually
-                        bdg_Spikenorm_f=f'Analysis_Results/Spikein_normalized_bws_bdgs/Normalized_bedgraphs/{OutputPrefix}_Norm.bedgraph'
-                        bigwig_Spikenorm_f = f'Analysis_Results/Spikein_normalized_bws_bdgs/Normalized_bigwigs/{OutputPrefix}_Norm.bw'
-                        bigwig_Spikenorm_wDups_f = f'Analysis_Results/Spikein_normalized_bws_bdgs/Normalized_bigwigs_wDups/{OutputPrefix}_Norm_wDups.bw'
+                        ## output
+                        bigwig_Spikenorm_f=os.path.join(outputdirprefix1, key, f"{outputfilename}.bw")
+                        bdg_Spikenorm_f=os.path.join(outputdirprefix2, key, f"{outputfilename}_Norm.bedgraph")
+                        bigwig_Spikenorm_wDups_f=os.path.join(outputdirprefix3, key, f"{outputfilename}_Norm_wDups.bw")
 
 
                         #with dups
-                        shell( "bamCoverage --bam {input.MAPQfiltMappedPairedBam} -o {bigwig_Spikenorm_wDups_f} \
-                                --scaleFactor {Sfvalue} {params.bamCov_default} &>> {log} " )
+                        shell( "bamCoverage --bam {MAPQfiltMappedPairedBam_f} -o {bigwig_Spikenorm_wDups_f} \
+                                --scaleFactor {Sfvalue} {params.bamCov_default} &>> {log_f} " )
 
                         # without dups
-                        shell( "bamCoverage --bam {input.NoDupsBam} -o {bigwig_Spikenorm_f} \
-                                --scaleFactor {Sfvalue} {params.bamCov_default} &>> {log} " )
+                        shell( "bamCoverage --bam {NoDupsfile} -o {bigwig_Spikenorm_f} \
+                                --scaleFactor {Sfvalue} {params.bamCov_default} &>> {log_f} " )
 
-                        shell( "bamCoverage --bam {input.NoDupsBam} --outFileFormat bedgraph -o {bdg_Spikenorm_f} \
-                                --scaleFactor {Sfvalue} {params.bamCov_default} &>> {log} " )
+                        shell( "bamCoverage --bam {NoDupsfile} --outFileFormat bedgraph -o {bdg_Spikenorm_f} \
+                                --scaleFactor {Sfvalue} {params.bamCov_default} &>> {log_f} " )
+
+                    with open (output.mockfile, "a") as f:
+                        f.write("rule GetNormBwsBdgs_BamCoverage_Input completed!!!!!")
+                        f.close()
 
 
-rule Peaks_SEACR:
-    input:
-        Target=expand('Analysis_Results/Spikein_normalized_bws_bdgs/Normalized_bedgraphs/{fastqfile}_Norm.bedgraph', fastqfile=ALL_TARGETS)
-    output:
-        Strin=expand('Analysis_Results/Peaks/{fastqfile}.stringent.bed', fastqfile=ALL_TARGETS)
-    params:
-        SEACRLoc=config['SEACRLoc']
-    log:
-        expand("logs/Peaks/{fastqfile}.log", fastqfile=ALL_TARGETS)
-    threads: 4
-    resources:
-        mem_mb=2000,
-        runtime=1440
-    run:
-        for Targetf in input.Target:
+#optionaloutput="Analysis_Results/Spikein_normalized_bws_bdgs/Normalized_bigwigs/Inputs/{fastqfile}" if len(ALL_IGGFILES) != 0 else []
 
-            key = os.path.basename(Targetf).split("_")[0]
 
-            Control = samples.loc[samples.index.str.contains(key)]['IgGFile'][0]
+if len(ALL_IGGFILES) != 0:
 
-            if (str(Control).lower() in "none") or (math.isnan(Control) == True):
-                logger.info(f"{params.SEACRLoc} {Targetf} 0.05 non stringent Analysis_Results/Peaks/{key} &>> {log}")
-                shell ( "bash {params.SEACRLoc} {Targetf} 0.05 non stringent Analysis_Results/Peaks/{key} &>> {log} " )
-                shell ( "bash {params.SEACRLoc} {Targetf} 0.05 non relaxed Analysis_Results/Peaks/{key} &>> {log} " )
+    logger.info("input files present...using rule Peaks_SEACR_ver1")
 
-            else:
-                _IgG_=os.path.join("Analysis_Results/Spikein_normalized_bws_bdgs/Normalized_bedgraphs", f"{Control}_Norm.bedgraph")
-                logger.info(f"{params.SEACRLoc} {Targetf} {_IgG_} non stringent Analysis_Results/Peaks/{key} &>> {log}")
-                shell ( "bash {params.SEACRLoc} {Targetf} {_IgG_} non stringent Analysis_Results/Peaks/{key} &>> {log} " )
-                shell ( "bash {params.SEACRLoc} {Targetf} {_IgG_} non relaxed Analysis_Results/Peaks/{key} &>> {log} " )
+    rule Peaks_SEACR_ver1:
+        input:
+            Target='Analysis_Results/Spikein_normalized_bws_bdgs/Normalized_bedgraphs/{fastqfile}_Norm.bedgraph',
+            mockfile="logs/Spikein_normalized_bws_bdgs/mockfile.txt"
+        output:
+            Strin='Analysis_Results/Peaks/{fastqfile}.stringent.bed',
+        params:
+            SEACRLoc=config['SEACRLoc'],
+        log:
+            "logs/Peaks/{fastqfile}.log"
+        threads: 9
+        resources:
+            mem_mb=8000,
+            runtime=1440
+        run:
+            Control = samples.loc[samples.index.str.contains(wildcards.fastqfile)]['IgGFile'][0]
+            Groupname = samples.loc[samples.index.str.contains(wildcards.fastqfile)]['AntibodyGroup'][0]
 
-rule Clean_up:
-    input:
-        Strin=expand('Analysis_Results/Peaks/{fastqfile}.stringent.bed', fastqfile=ALL_TARGETS)
-    output:
-        "logs/cleanup.log"
-    threads: 1
-    shell:
-        " rm *.out &>> {output} "
+            logger.info(f"Control: {Control}, Groupname: {Groupname}")
+
+            _IgG_=os.path.join("Analysis_Results/Spikein_normalized_bws_bdgs/Normalized_bedgraphs/Inputs/",Control, f"{Groupname}_{Control}_Norm.bedgraph")
+            logger.info(f"{params.SEACRLoc} {input.Target} {_IgG_} non stringent Analysis_Results/Peaks/{wildcards.fastqfile} &>> {log}")
+            shell ( "bash {params.SEACRLoc} {input.Target} {_IgG_} non stringent Analysis_Results/Peaks/{wildcards.fastqfile} &>> {log} " )
+            shell ( "bash {params.SEACRLoc} {input.Target} {_IgG_} non relaxed Analysis_Results/Peaks/{wildcards.fastqfile} &>> {log} " )
+
+
+else:
+    logger.info("no input files...using rule Peaks_SEACR_ver2")
+    rule Peaks_SEACR_ver2:
+        input:
+            Target='Analysis_Results/Spikein_normalized_bws_bdgs/Normalized_bedgraphs/{fastqfile}_Norm.bedgraph',
+        output:
+            Strin='Analysis_Results/Peaks/{fastqfile}.stringent.bed',
+        params:
+            SEACRLoc=config['SEACRLoc'],
+        log:
+            "logs/Peaks/{fastqfile}.log"
+        threads: 9
+        resources:
+            mem_mb=8000,
+            runtime=1440
+        run:
+            Control = samples.loc[samples.index.str.contains(wildcards.fastqfile)]['IgGFile'][0]
+            Groupname = samples.loc[samples.index.str.contains(wildcards.fastqfile)]['AntibodyGroup'][0]
+
+            logger.info(f"Control: {Control}, Groupname: {Groupname}")
+
+
+            shell ( "bash {params.SEACRLoc} {input.Target} 0.05 non stringent Analysis_Results/Peaks/{wildcards.fastqfile} &>> {log} " )
+            shell ( "bash {params.SEACRLoc} {input.Target} 0.05 non relaxed Analysis_Results/Peaks/{wildcards.fastqfile} &>> {log} " )
+
+
+#rule Clean_up:
+    #input:
+        #Strin=expand('Analysis_Results/Peaks/{fastqfile}.stringent.bed', fastqfile=ALL_TARGETS)
+    #output:
+        #"logs/cleanup.log"
+    #threads: 1
+    #shell:
+        #" rm *.out &>> {output} "

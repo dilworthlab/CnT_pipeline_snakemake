@@ -2,7 +2,7 @@
 # User defined
 Species: "Mus musculus"  # Mus musculus or Homo sapiens
 Spikein: "Amp"  # Amp or Bacteria
-PicardLoc:
+PicardCmd:
 SEACRLoc:
 bowtie2_index: # download from iGenomes
 
