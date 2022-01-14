@@ -124,7 +124,7 @@ cd  ~/.config/snakemake
 cookiecutter https://github.com/Snakemake-Profiles/slurm.git
 ```
 
-### In the setup prompt, add your <profile name> (e.g. Slurm_CnT). Others can be left empty.
+### In the setup prompt, add your "profile name" (e.g. Slurm_CnT). Others can be left empty.
 
 
 ```
@@ -177,7 +177,7 @@ For more information, refer to this very informative blog post: http://bluegenes
 "Amp" or "Bacteria"
 
 # Primary genome index
-bowtie2_index: "/path/to/bowtie2/index/prefix" # don't forget prefix
+bowtie2_index: /path/to/bowtie2/index/prefix # don't forget prefix
 
 # Picard location/Command
 PicardLoc: "java -jar /path/to/picard.jar" # don't forget quotes
